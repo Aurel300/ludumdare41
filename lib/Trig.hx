@@ -16,5 +16,13 @@ class Trig {
       cosAngle[i] = Math.cos(a);
       sinAngle[i] = Math.sin(a);
     }
+    cosAngle[0] = 1;
+    sinAngle[0] = 0;
+    cosAngle[9] = 0;
+    sinAngle[9] = 1;
+    cosAngle[18] = -1;
+    sinAngle[18] = 0;
+    cosAngle[27] = 0;
+    sinAngle[27] = -1;
   }
 }

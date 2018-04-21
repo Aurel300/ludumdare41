@@ -1,0 +1,2 @@
+pal:psd/pal.psd:png/pal.png
+rv:psd/rv.psd:png/rv.png

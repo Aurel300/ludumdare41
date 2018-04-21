@@ -16,18 +16,21 @@ class P3DPart {
     var vec = b.getVector();
     data = new Vector<Int>(b.width * b.height);
     for (vi in 0...data.length) {
-      data[vi] = vec[vi] & 0xFF;
+      if (vec[vi].isTransparent) data[vi] = 0;
+      else data[vi] = Colour.quantise(vec[vi], Pal.reg);
     }
     w = b.width;
     h = b.height;
     return b;
   }
   
+  public var display:Bool = true;
   public var data:Vector<Int>;
   public var w:Int;
   public var h:Int;
   public var vert:Bool = true;
   public var angle:Int = 0;
+  public var lightAngle:Int = 0;
   public var tilt:Int = 0;
   public var showA:Bool = true;
   public var showB:Bool = true;

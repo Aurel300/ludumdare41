@@ -1,24 +1,38 @@
 package lib;
 
-import haxe.ds.Vector;
 import sk.thenet.bmp.*;
 import sk.thenet.geom.*;
 
-using sk.thenet.FM;
 using sk.thenet.geom.Point;
 
 class P3D {
   public var pers:Float = .5;
+  public var lightMatrix:Vector<Int>;
   
   public function new() {
+    lightMatrix = new Vector<Int>(Trig.densityAngle * Trig.densityAngle * 4 * 4);
+    for (tilt in 0...Trig.densityAngle) {
+      var tiltVal = Math.sin((tilt / Trig.densityAngle) * Math.PI * 2).square();
+      for (angle in 0...Trig.densityAngle) {
+        for (y in 0...4) for (x in 0...4) {
+        lightMatrix[tilt * 576 + angle * 16 + y * 4 + x]
+          = (OrderedDither.BAYER_4[y * 4 + x] * .1
+            + tiltVal * 6
+            + (1 - tiltVal) * Math.sin((angle / Trig.densityAngle * .75) * Math.PI * 2) * 5).floor().clampI(0, 7);
+        }
+      }
+    }
+  }
+  
+  public function renderBuild(to:Plot, b:P3DBuild):Void {
+    b.update();
+    for (p in b.parts) render(to, p);
+  }
+  
+  public function render(to:Plot, p:P3DPart):Void {
+    for (s in p.sub) render(to, s);
+    if (!p.display) return;
     
-  }
-  
-  public function renderBuild(to:Plot, b:P3DBuild, ox:Int, oy:Int, oz:Int):Void {
-    for (p in b.parts) render(to, p, ox, oy, oz);
-  }
-  
-  public function render(to:Plot, p:P3DPart, ox:Int, oy:Int, oz:Int):Void {
     var mxx:Float = Trig.cosAngle[p.angle] * Trig.cosAngle[p.tilt];
     var mxy:Float = 0;
     var myx:Float = Trig.sinAngle[p.angle] * Trig.cosAngle[p.tilt];
@@ -42,9 +56,9 @@ class P3D {
     }
     
     // initial
-    var bx:Float = ox + p.x;
-    var by:Float = oy + p.y;
-    var bz:Float = oz + p.z;
+    var bx:Float = p.x;
+    var by:Float = p.y;
+    var bz:Float = p.z;
     
     // corners of rect
     var p1 = new Point3DF(bx, by * pers - bz, bz);
@@ -110,6 +124,7 @@ class P3D {
       var boundY = -diag.dot(nh);
       
       // render loop
+      var lval = (p.vert ? 0 : (p.tilt + 9) % Trig.densityAngle) * 576 + ((p.angle + p.lightAngle) % Trig.densityAngle) * 16;
       for (y in miny...maxy) for (x in minx...maxx) {
         var d1x = (x - p1.x);
         var d1y = (y - p1.y);
@@ -119,12 +134,11 @@ class P3D {
           to.plot(
                x, y
               ,(p1.z + projY * zw + projX * zh).floor()
-              ,p.data[(projY * p.w).floorZ() + (projX * p.h).floorZ() * p.w]
+              ,p.data[(projY * p.w).floor().clampI(0, p.w - 1) + (projX * p.h).floor().clampI(0, p.h - 1) * p.w]
+              ,lightMatrix[lval + (y % 4) * 4 + (x % 4)]
             );
         }
       }
     }
-    
-    for (s in p.sub) render(to, s, ox + p.x, oy + p.y, oz + p.z);
   }
 }
