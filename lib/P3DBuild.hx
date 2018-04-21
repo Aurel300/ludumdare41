@@ -101,7 +101,7 @@ class P3DBuild {
                 p.z = root.z + sides[i].height;
               });
             case 3:
-            p.bitmap = sides[i].fluent >> new Turn(3);
+            p.bitmap = sides[i].fluent >> new Turn(3) >> new Flip(true);
             p.vert = false;
             p.lightAngle = 9;
             constr.push(() -> {

@@ -10,13 +10,17 @@ import sk.thenet.plat.Platform;
 
 using sk.thenet.FM;
 
-class STest extends JamState {
+class SGame extends JamState {
+  var mode:GMode = TBS;
+  
   var p3d:P3D;
   var plot:Plot;
   
   var build:P3DBuild;
   
-  public function new(app) super("test", app);
+  var grid:Grid;
+  
+  public function new(app) super("game", app);
   
   override public function to() {
     p3d = new P3D();
@@ -39,19 +43,53 @@ class STest extends JamState {
         ]
         ,null
       );
+    
+    grid = new Grid(5, 5);
   }
   
   override public function tick() {
-    p3d.renderBuild(plot, build);
+    var zoomTarget = 1.0;
+    switch (mode) {
+      case Roam:
+      case TBS:
+      zoomTarget = .5;
+      grid.render(plot, p3d);
+    }
+    
     plot.render(ab);
+    
+    if (ph("t") == 0) {
+      p3d.camAngle = (p3d.camAngle + Trig.densityAngle + (1).negposI(ak(KeyQ), ak(KeyE))) % Trig.densityAngle;
+    }
+    {
+      var cmx = (3.3).negposF(ak(KeyA), ak(KeyD));
+      var cmy = (3.3).negposF(ak(KeyW), ak(KeyS));
+      if (cmx != 0 || cmy != 0) {
+        var c = Trig.cosAngle[p3d.camAngle] * (2.1 * p3d.zoom);
+        var s = Trig.sinAngle[p3d.camAngle] * (2.1 * p3d.zoom);
+        p3d.camTX += c * cmx + s * cmy;
+        p3d.camTY += -s * cmx + c * cmy;
+      }
+    };
+    
+    p3d.camX.target(p3d.camTX, 29);
+    p3d.camY.target(p3d.camTY, 29);
+    
+    //p3d.zoom.target(zoomTarget, 19);
     
     //build.angle = (app.mouse.x >> 2) % 36;
     //build.tilt = (app.mouse.y >> 2) % 36;
-    if (ak(ArrowRight) && ph("t") == 0) build.angle++;
+    /*
     build.angle %= 36;
     if (ak(ArrowUp) && ph("t") == 0) build.tilt++;
     build.tilt %= 36;
     build.x = 150;
     build.y = 250;
+    */
   }
+}
+
+enum GMode {
+  Roam;
+  TBS;
 }

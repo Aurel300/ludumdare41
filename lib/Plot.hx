@@ -36,13 +36,15 @@ class Plot {
   public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int):Void {
     var i = x + y * Main.W;
     if (col == 0) return;
-    //if (x.withinI(0, Main.W - 1) && ey.withinI(0, Main.H - 1)) {
-      if (z > zbuf[i]) {
+    if (z > zbuf[i]) {
+      zbuf[i] = z;
+      if (col > 0) {
         pbuf[i] = col;
-        zbuf[i] = z;
         lbuf[i] = light;
+      } else {
+        lbuf[i]++;
       }
-    //}
+    }
   }
 }
 

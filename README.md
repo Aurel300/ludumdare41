@@ -18,26 +18,26 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 ## TODO ##
 
  - gameplay
-   - open world
+   - open world - 11h
      - driving
      - encounters
      - locations
      - arcs
-   - cooking
+   - cooking - 
      - methods
      - ingredients
      - timers
      - stats
-   - tbs
+   - tbs - 
      - units
    - overall stats, progression
  - graphics
    - pseudo-3D renderer
      - [x] walls, floors, tilts
-     - shadows
-     - simple 3D build method
+     - [.] shadows
+     - [x] simple 3D build method
    - particle effecs
-   - time progression via palette shifts
+   - [.] time progression via palette shifts
    - cooking
      - cookware
      - ingredients
@@ -48,3 +48,8 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
    - sfx
    - voice acting?
    - music
+
+## Bucket ##
+
+ - PERF cull back faces
+

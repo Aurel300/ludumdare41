@@ -16,6 +16,8 @@ class Main extends Application {
   public static inline var W:Int = 320;
   public static inline var H:Int = 240;
   public static inline var WH:Int = W * H;
+  public static inline var W2:Int = W >> 1;
+  public static inline var H2:Int = H >> 1;
   
   public function new() {
     super([
@@ -32,8 +34,8 @@ class Main extends Application {
         ,Mouse
       ]);
     Trig.init();
-    preloader = new TNPreloader(this, "test", true);
-    addState(new STest(this));
+    preloader = new TNPreloader(this, "game", true);
+    addState(new SGame(this));
     mainLoop();
   }
 }
