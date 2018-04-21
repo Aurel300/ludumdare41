@@ -1,6 +1,8 @@
 package lib;
 
+import haxe.ds.Vector;
 import sk.thenet.app.JamState;
+import sk.thenet.app.Keyboard.Key;
 import sk.thenet.anim.Phaser;
 import sk.thenet.bmp.*;
 import sk.thenet.plat.Platform;
@@ -20,22 +22,19 @@ class STest extends JamState {
     plot = new Plot();
     
     part = new P3DPart(null);
-    part.bitmap = Platform.createBitmap(30, 20, 0xFFAA0000);
+    part.bitmap = Platform.createBitmap(90, 70, 0xFFAA0000);
     part.z = 1;
     part.vert = false;
-    
-    phasers["tilt"] = new Phaser(72, 8);
-    phasers["angle"] = new Phaser(72, 2);
   }
   
   override public function tick() {
-    p3d.render(plot, part, 50, 50, 0);
+    p3d.render(plot, part, 150, 100, 0);
     plot.render(ab);
-    //part.angle++;
-    //part.angle %= Trig.densityAngle;
-    //part.tilt++;
-    //part.tilt %= Trig.densityTilt;
-    part.angle = ph("angle");
-    part.tilt = (app.mouse.y >> 4).clampI(0, 8); //ph("tilt");
+    part.angle = (app.mouse.x >> 2).clampI(0, 35);
+    part.tilt = (app.mouse.y >> 4).clampI(0, 8);
+  }
+  
+  override public function mouseClick(mx, my) {
+    trace(part.angle, part.tilt);
   }
 }

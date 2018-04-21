@@ -1,11 +1,25 @@
 package lib;
 
+import haxe.ds.Vector;
 import sk.thenet.bmp.*;
 
 using sk.thenet.FM;
 
 class P3D {
   public var pers:Float = .5;
+  
+  static var tiltNums = Vector.fromArrayCopy([
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 4, 1,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 2, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ]);
+  static var tiltMuls = tiltNums.map(t -> 1.0 / (1 + t));
   
   public function new() {
     
@@ -37,26 +51,23 @@ class P3D {
       //mzx = Trig.sinTilt[p.tilt];
       //mzy = 0;
     }
+    var tiltNum = 1 + tiltNums[p.tilt * Trig.densityAngle + p.angle];
+    var tiltMul = tiltMuls[p.tilt * Trig.densityAngle + p.angle];
     var bx:Float = ox + p.x;
     var by:Float = oy + p.y;
     var bz:Float = oz + p.z;
     var vi = 0;
-    var lx:Int = -1;
-    var ly:Int = -1;
     
     var cx:Int = -1;
     var cyy:Int = -1;
     var cyz:Int = -1;
     var cye:Int = -1;
     for (y in 0...p.h) for (x in 0...p.w) {
-      for (off in 0...2) {
-        cx  = (bx + mxx * (x + off * .5) + mxy * (y + off * .5)).floorZ();
-        cyy = ((bx + myx * (x + off * .5) + myy * (y + off * .5)) * pers).floorZ();
-        cyz = (bz + mzx * (x + off * .5) + mzy * (y + off * .5)).floorZ();
-        cye = cyy - cyz;
-        if (cx == lx && cye == ly) continue;
-        lx = cx;
-        ly = cye;
+      for (off in 0...tiltNum) {
+        cx  = (bx + mxx * x + mxy * y + off * tiltMul).floorZ();
+        cyy = ((bx + myx * x + off + myy * y) * pers).floorZ();
+        cyz = (bz + mzx * x + mzy * y).floorZ();
+        cye = cyy - cyz + (off * tiltMul).floorZ();
         to.plot(cx, cyy, cyz, p.data[vi]);
       }
       vi++;
