@@ -33,6 +33,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
    - overall stats, progression
  - graphics
    - pseudo-3D renderer
+     - [x] walls, floors, tilts
      - shadows
      - simple 3D build method
    - particle effecs

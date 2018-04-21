@@ -23,6 +23,7 @@ class Main extends Application {
         ,Optional(Window("", 640, 480))
         ,Surface(320, 240, 1)
         ,Assets([
+            Embed.getBitmap("test", "png/test.png")
           ])
         ,Keyboard
         ,Mouse

@@ -23,11 +23,11 @@ class Plot {
     ibuf = new Uint8ClampedArray(Main.WH);
     renvec = new Vector<Colour>(Main.WH);
     
-    palette = Vector.fromArrayCopy([(0xFF000000:Colour), (0xFFAA0000:Colour)]);
+    palette = Vector.fromArrayCopy([(0xFF000000:Colour), (0xFFAA0000:Colour), (0xFF00AA00:Colour), Colour.WHITE]);
   }
   
   public function render(to:Bitmap):Void {
-    for (vi in 0...Main.WH) renvec[vi] = palette[pbuf[vi]];
+    for (vi in 0...Main.WH) renvec[vi] = 0xFF000000 | pbuf[vi]; //palette[pbuf[vi]];
     to.setVector(renvec);
     untyped __js__("{0}.fill(0)", zbuf);
     untyped __js__("{0}.fill(0)", pbuf);

@@ -22,7 +22,7 @@ class STest extends JamState {
     plot = new Plot();
     
     part = new P3DPart(null);
-    part.bitmap = Platform.createBitmap(90, 70, 0xFFAA0000);
+    part.bitmap = amB("test");
     part.z = 1;
     part.vert = false;
   }
@@ -30,7 +30,7 @@ class STest extends JamState {
   override public function tick() {
     p3d.render(plot, part, 150, 100, 0);
     plot.render(ab);
-    part.angle = (app.mouse.x >> 2).clampI(0, 35);
+    part.angle = (app.mouse.x >> 2) % 36;
     part.tilt = (app.mouse.y >> 4).clampI(0, 8);
   }
   

@@ -2,6 +2,7 @@ package lib;
 
 import haxe.ds.Vector;
 import sk.thenet.bmp.*;
+import sk.thenet.FM;
 
 class P3DPart {
   public var x:Int = 0;
@@ -12,9 +13,10 @@ class P3DPart {
   
   public var bitmap(never, set):Bitmap;
   private inline function set_bitmap(b:Bitmap):Bitmap {
+    var vec = b.getVector();
     data = new Vector<Int>(b.width * b.height);
     for (vi in 0...data.length) {
-      data[vi] = 1;
+      data[vi] = vec[vi] & 0xFF;
     }
     w = b.width;
     h = b.height;
