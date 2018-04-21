@@ -1,0 +1,6 @@
+-cp /DevProjects/Fonts
+-D PLUSTD_TARGET=js.canvas
+-lib plustd
+--macro addClassPath('/DevProjects/Libs/plustd/assets/thenet-preloader/lib')
+-main Main
+-js acw.js
