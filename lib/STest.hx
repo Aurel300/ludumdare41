@@ -21,7 +21,8 @@ class STest extends JamState {
     
     part = new P3DPart(null);
     part.bitmap = Platform.createBitmap(30, 20, 0xFFAA0000);
-    part.z = 20;
+    part.z = 1;
+    part.vert = false;
     
     phasers["tilt"] = new Phaser(72, 8);
     phasers["angle"] = new Phaser(72, 2);

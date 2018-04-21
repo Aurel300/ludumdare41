@@ -11,7 +11,6 @@ class Trig {
   public static var cosTilt:Vector<Float>;
   public static var sinTilt:Vector<Float>;
   
-  public static var pers:Float = 2;
   
   public static function init():Void {
     cosAngle = new Vector<Float>(densityAngle);
@@ -19,7 +18,7 @@ class Trig {
     for (i in 0...densityAngle) {
       var a = (i / densityAngle) * Math.PI * 2;
       cosAngle[i] = Math.cos(a);
-      sinAngle[i] = Math.sin(a) / pers;
+      sinAngle[i] = Math.sin(a);
     }
     cosTilt = new Vector<Float>(densityTilt);
     sinTilt = new Vector<Float>(densityTilt);
