@@ -23,18 +23,20 @@ class STest extends JamState {
     
     part = new P3DPart(null);
     part.bitmap = amB("test");
-    part.z = 1;
+    part.z = 0;
     part.vert = false;
+    part.tilt = 3;
   }
   
   override public function tick() {
     p3d.render(plot, part, 150, 100, 0);
     plot.render(ab);
     part.angle = (app.mouse.x >> 2) % 36;
-    part.tilt = (app.mouse.y >> 4).clampI(0, 8);
+    //part.tilt = (app.mouse.y >> 4).clampI(0, 8);
+    part.z = (app.mouse.y >> 2) - 10;
   }
   
   override public function mouseClick(mx, my) {
-    trace(part.angle, part.tilt);
+    part.vert = !part.vert;
   }
 }
