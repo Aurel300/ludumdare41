@@ -24,7 +24,7 @@ class P3DPart {
   public var data:Vector<Int>;
   public var w:Int;
   public var h:Int;
-  public var horizontal:Bool = true;
+  public var vert:Bool = true;
   public var angle:Int = 0;
   public var tilt:Int = 0;
   public var showA:Bool = true;

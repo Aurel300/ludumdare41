@@ -27,6 +27,7 @@ class Main extends Application {
         ,Keyboard
         ,Mouse
       ]);
+    Trig.init();
     preloader = new TNPreloader(this, "test", true);
     addState(new STest(this));
     mainLoop();

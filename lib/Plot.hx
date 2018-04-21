@@ -6,6 +6,8 @@ import haxe.ds.Vector;
 import js.html.Uint8ClampedArray;
 import sk.thenet.bmp.*;
 
+using sk.thenet.FM;
+
 class Plot {
   public var zbuf:Uint8ClampedArray; // z coord
   public var pbuf:Uint8ClampedArray; // palette indices
@@ -27,6 +29,19 @@ class Plot {
   public function render(to:Bitmap):Void {
     for (vi in 0...Main.WH) renvec[vi] = palette[pbuf[vi]];
     to.setVector(renvec);
+    untyped __js__("{0}.fill(0)", zbuf);
+    untyped __js__("{0}.fill(0)", pbuf);
+    // untyped __js__("{0}.fill(0)", ibuf);
+  }
+  
+  public inline function plot(x:Int, y:Int, z:Int, col:Int):Void {
+    var i = x + (y - z) * Main.W;
+    //if (x.withinI(0, Main.W - 1) && ey.withinI(0, Main.H - 1)) {
+      if (z > zbuf[i]) {
+        pbuf[i] = col;
+        zbuf[i] = z;
+      }
+    //}
   }
 }
 

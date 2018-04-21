@@ -18,10 +18,13 @@ class STest extends JamState {
     
     part = new P3DPart(null);
     part.bitmap = Platform.createBitmap(30, 20, 0xFFAA0000);
+    part.z = 20;
   }
   
   override public function tick() {
-    p3d.render(plot, part, 0, 0, 0);
+    p3d.render(plot, part, 50, 50, 0);
     plot.render(ab);
+    part.angle++;
+    part.angle %= Trig.densityAngle;
   }
 }
