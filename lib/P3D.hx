@@ -134,6 +134,12 @@ class P3D {
       var boundX = diag.dot(nw);
       var boundY = -diag.dot(nh);
       
+      // entity
+      var ent = 0;
+      if (p.entity != null) {
+        ent = to.registerEntity(p.entity);
+      }
+      
       // render loop
       var lval = (p.vert ? 0 : (p.tilt + 9) % Trig.densityAngle) * 576
           + ((angle + p.lightAngle + Trig.densityAngle - camAngle) % Trig.densityAngle) * 16;
@@ -148,6 +154,7 @@ class P3D {
               ,(p1.z + projY * zw + projX * zh).floor()
               ,p.data[(projY * p.w).floor().clampI(0, p.w - 1) + (projX * p.h).floor().clampI(0, p.h - 1) * p.w]
               ,lightMatrix[lval + (y % 4) * 4 + (x % 4)]
+              ,ent
             );
         }
       }

@@ -1,7 +1,5 @@
 package lib;
 
-class Entity {
-  public function new() {
-    
-  }
+interface Entity {
+  function partClick():Void;
 }

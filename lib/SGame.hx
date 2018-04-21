@@ -48,12 +48,15 @@ class SGame extends JamState {
   }
   
   override public function tick() {
+    plot.prerender();
+    
     var zoomTarget = 1.0;
     switch (mode) {
       case Roam:
       case TBS:
       zoomTarget = .5;
       grid.render(plot, p3d);
+      p3d.renderBuild(plot, build);
     }
     
     plot.render(ab);
@@ -86,6 +89,10 @@ class SGame extends JamState {
     build.x = 150;
     build.y = 250;
     */
+  }
+  
+  override public function mouseClick(mx, my) {
+    plot.click(mx, my);
   }
 }
 

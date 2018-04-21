@@ -15,6 +15,8 @@ class Plot {
   public var lbuf:Uint8ClampedArray; // light value
   
   var renvec:Vector<Colour>;
+  var ents:Vector<Entity>;
+  var entIndex:Int;
   
   public function new() {
     zbuf = new Uint8ClampedArray(Main.WH);
@@ -22,6 +24,13 @@ class Plot {
     ibuf = new Uint8ClampedArray(Main.WH);
     lbuf = new Uint8ClampedArray(Main.WH);
     renvec = new Vector<Colour>(Main.WH);
+    ents = new Vector(256);
+    entIndex = 1;
+  }
+  
+  public function prerender():Void {
+    untyped __js__("{0}.fill(0)", ibuf);
+    entIndex = 1;
   }
   
   public function render(to:Bitmap):Void {
@@ -30,20 +39,32 @@ class Plot {
     untyped __js__("{0}.fill(0)", zbuf);
     untyped __js__("{0}.fill(1)", pbuf);
     untyped __js__("{0}.fill(0)", lbuf);
-    // untyped __js__("{0}.fill(0)", ibuf);
   }
   
-  public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int):Void {
+  public function registerEntity(e:Entity):Int {
+    ents[entIndex] = e;
+    return entIndex++;
+  }
+  
+  public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int, ent:Int):Void {
     var i = x + y * Main.W;
     if (col == 0) return;
     if (z > zbuf[i]) {
       zbuf[i] = z;
+      if (ent > 0) ibuf[i] = ent;
       if (col > 0) {
         pbuf[i] = col;
         lbuf[i] = light;
       } else {
         lbuf[i]++;
       }
+    }
+  }
+  
+  public function click(x:Int, y:Int):Void {
+    var i = x + y * Main.W;
+    if (ibuf[i] != 0) {
+      ents[ibuf[i]].partClick();
     }
   }
 }

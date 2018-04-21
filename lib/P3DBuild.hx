@@ -62,7 +62,7 @@ class P3DBuild {
               p.tilt = root.tilt;
               p.x = root.x;
               p.y = root.y;
-              p.z = root.z + sides[0].height;
+              p.z = root.z + sides[0].height - 1;
             });
           p;
         };
@@ -96,8 +96,8 @@ class P3DBuild {
             constr.push(() -> {
                 p.angle = root.angle;
                 p.tilt = root.tilt;
-                p.x = root.x;
-                p.y = root.y;
+                p.x = root.x + (Trig.cosAngle[(root.angle + 9) % Trig.densityAngle] * 1).floor();
+                p.y = root.y + (Trig.sinAngle[(root.angle + 9) % Trig.densityAngle] * 1).floor();
                 p.z = root.z + sides[i].height;
               });
             case 3:
@@ -107,8 +107,8 @@ class P3DBuild {
             constr.push(() -> {
                 p.angle = root.angle % Trig.densityAngle;
                 p.tilt = (27 + root.tilt) % Trig.densityAngle;
-                p.x = root.x;
-                p.y = root.y;
+                p.x = root.x + (Trig.cosAngle[root.angle] * 1).floor();
+                p.y = root.y + (Trig.sinAngle[root.angle] * 1).floor();
                 p.z = root.z + sides[i].height;
               });
             case _:

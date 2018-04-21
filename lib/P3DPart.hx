@@ -8,7 +8,7 @@ class P3DPart {
   public var x:Int = 0;
   public var y:Int = 0;
   public var z:Int = 0;
-  public var owner:Entity;
+  public var entity:Entity;
   public var sub:Array<P3DPart> = [];
   
   public var bitmap(never, set):Bitmap;
@@ -35,7 +35,7 @@ class P3DPart {
   public var showA:Bool = true;
   public var showB:Bool = true;
   
-  public function new(owner:Entity) {
-    this.owner = owner;
+  public function new(entity:Entity) {
+    this.entity = entity;
   }
 }
