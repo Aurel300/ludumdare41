@@ -6,6 +6,22 @@ import sk.thenet.geom.*;
 using sk.thenet.geom.Point;
 
 class P3D {
+  public static var lightMatrix:Vector<Int> = {
+      var ret = new Vector<Int>(Trig.densityAngle * Trig.densityAngle * 4 * 4);
+      for (tilt in 0...Trig.densityAngle) {
+        var tiltVal = Math.sin((tilt / Trig.densityAngle) * Math.PI * 2).square();
+        for (angle in 0...Trig.densityAngle) {
+          for (y in 0...4) for (x in 0...4) {
+          ret[tilt * 576 + angle * 16 + y * 4 + x]
+            = (OrderedDither.BAYER_4[y * 4 + x] * .1
+              + tiltVal * 6
+              + (1 - tiltVal) * Math.sin((angle / Trig.densityAngle * .75) * Math.PI * 2) * 5).floor().clampI(0, 7);
+          }
+        }
+      }
+      ret;
+    };
+  
   public var pers:Float = .5;
   public var zoom:Float = 1;
   public var camX:Float = 0;
@@ -13,21 +29,9 @@ class P3D {
   public var camTX:Float = 0;
   public var camTY:Float = 0;
   public var camAngle:Int = 0;
-  public var lightMatrix:Vector<Int>;
   
   public function new() {
-    lightMatrix = new Vector<Int>(Trig.densityAngle * Trig.densityAngle * 4 * 4);
-    for (tilt in 0...Trig.densityAngle) {
-      var tiltVal = Math.sin((tilt / Trig.densityAngle) * Math.PI * 2).square();
-      for (angle in 0...Trig.densityAngle) {
-        for (y in 0...4) for (x in 0...4) {
-        lightMatrix[tilt * 576 + angle * 16 + y * 4 + x]
-          = (OrderedDither.BAYER_4[y * 4 + x] * .1
-            + tiltVal * 6
-            + (1 - tiltVal) * Math.sin((angle / Trig.densityAngle * .75) * Math.PI * 2) * 5).floor().clampI(0, 7);
-        }
-      }
-    }
+    
   }
   
   public function renderBuild(to:Plot, b:P3DBuild):Void {
@@ -38,11 +42,13 @@ class P3D {
   public function renderGrid(to:Plot, g:Grid):Void {
     for (ti in 0...g.renTiles.length) {
       render(to, g.renTiles[ti]);
-      if (g.units[ti] != null) {
-        g.units[ti].update();
-        for (l in g.units[ti].layers) renderBuild(to, l);
-      }
+      if (g.units[ti] != null) renderUnit(to, g.units[ti]);
     }
+  }
+  
+  public function renderUnit(to:Plot, u:Unit) {
+    u.update();
+    for (l in u.layers) renderBuild(to, l);
   }
   
   public function render(to:Plot, p:P3DPart):Void {

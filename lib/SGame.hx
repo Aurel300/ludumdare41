@@ -3,7 +3,7 @@ package lib;
 import haxe.ds.Vector;
 import sk.thenet.app.JamState;
 import sk.thenet.app.Keyboard.Key;
-import sk.thenet.anim.Phaser;
+import sk.thenet.anim.*;
 import sk.thenet.bmp.*;
 import sk.thenet.bmp.manip.*;
 import sk.thenet.plat.Platform;
@@ -13,14 +13,14 @@ using sk.thenet.FM;
 class SGame extends JamState {
   var mode:GMode = TBS;
   
-  var p3d:P3D;
+  public var p3d:P3D;
   var plot:Plot;
   
   var build:P3DBuild;
   
   var grid:Grid;
-  
   var board:Board;
+  var boardBT:Bitween;
   
   public function new(app) super("game", app);
   
@@ -44,6 +44,7 @@ class SGame extends JamState {
     grid = new Grid(5, 5);
     
     board = new Board();
+    boardBT = new Bitween(40);
   }
   
   override public function tick() {
@@ -54,19 +55,18 @@ class SGame extends JamState {
       case Roam:
       p3d.renderBuild(plot, build);
       case TBS:
-      //zoomTarget = 0.9;
+      zoomTarget = 0.9 + boardBT.valueF;
       p3d.renderGrid(plot, grid);
       p3d.renderBuild(plot, build);
     }
     
     plot.render(ab, 0, 0);
+    board.render(ab, ((1 - Timing.quadInOut.getF(boardBT.valueF)) * Main.H).floor());
     
-    //board.render(ab);
-    
-    if (ph("t") == 0) {
-      p3d.camAngle = (p3d.camAngle + Trig.densityAngle + (1).negposI(ak(KeyQ), ak(KeyE))) % Trig.densityAngle;
-    }
-    {
+    if (boardBT.isOff) {
+      if (ph("t") == 0) {
+        p3d.camAngle = (p3d.camAngle + Trig.densityAngle + (1).negposI(ak(KeyQ), ak(KeyE))) % Trig.densityAngle;
+      }
       var cmx = (3.3).negposF(ak(KeyA), ak(KeyD));
       var cmy = (3.3).negposF(ak(KeyW), ak(KeyS));
       if (cmx != 0 || cmy != 0) {
@@ -75,8 +75,9 @@ class SGame extends JamState {
         p3d.camTX += c * cmx + s * cmy;
         p3d.camTY += -s * cmx + c * cmy;
       }
-    };
+    }
     
+    boardBT.tick();
     p3d.camX.target(p3d.camTX, 29);
     p3d.camY.target(p3d.camTY, 29);
     p3d.zoom.target(zoomTarget + (2.0).negposF(ak(KeyR), ak(KeyF)), 19);
@@ -97,8 +98,17 @@ class SGame extends JamState {
   }
   
   override public function mouseClick(mx, my) {
-       plot.click(mx, my)
-    || board.click(mx, my);
+    if (!boardBT.isOn && !boardBT.isOff) return;
+       (boardBT.isOn ? board.click(mx, my) : false)
+    || plot.click(mx, my);
+  }
+  
+  override public function keyUp(k:Key) {
+    if (boardBT.isOn && board.keyUp(k)) return;
+    switch (k) {
+      case Space: boardBT.toggle();
+      case _:
+    }
   }
 }
 
