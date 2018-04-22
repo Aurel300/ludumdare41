@@ -19,13 +19,15 @@ class P3DPart {
       if (vec[vi].isTransparent) data[vi] = 0;
       else data[vi] = Colour.quantise(vec[vi], Pal.reg);
     }
-    w = b.width;
-    h = b.height;
+    dw = w = b.width;
+    dh = h = b.height;
     return b;
   }
   
   public var display:Bool = true;
   public var data:Vector<Int>;
+  public var dw:Int;
+  public var dh:Int;
   public var w:Int;
   public var h:Int;
   public var vert:Bool = true;

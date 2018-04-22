@@ -2,17 +2,10 @@ package lib;
 
 class Grid {
   public static inline var TILE_DIM:Int = 32;
+  public static inline var TILE_HALF:Int = 16;
   public static inline var TILE_MARGIN:Int = 2;
-  public static var tileData:Vector<Int> = {
-      var ret = new Vector((TILE_DIM - 2 * TILE_MARGIN) * (TILE_DIM - 2 * TILE_MARGIN));
-      for (vi in 0...ret.length) ret[vi] = -1;
-      ret;
-    };
-  public static var tileDataHover:Vector<Int> = {
-      var ret = new Vector((TILE_DIM - 2 * TILE_MARGIN) * (TILE_DIM - 2 * TILE_MARGIN));
-      for (vi in 0...ret.length) ret[vi] = -3;
-      ret;
-    };
+  public static var tileData:Vector<Int> = Vector.fromArrayCopy([-1]);
+  public static var tileDataHover:Vector<Int> = Vector.fromArrayCopy([-3]);
   
   public var x:Int = 0;
   public var y:Int = 0;
@@ -36,6 +29,15 @@ class Grid {
       renTiles[vi] = renEnts[vi].part;
       vi++;
     }
+    
+    var b = new Burger();
+    b.grid = this;
+    b.gridX = 2;
+    b.gridY = 2;
+    b.addLayer(BunBottom);
+    b.addLayer(Tomato);
+    b.addLayer(BunTop);
+    units[2 + 2 * 5] = b;
   }
 }
 
@@ -43,15 +45,14 @@ class GridTile implements Entity {
   public var part:P3DPart;
   
   public function new(x:Int, y:Int) {
-    part = new P3DPart(null);
+    part = new P3DPart(this);
     part.vert = false;
     part.x = x * Grid.TILE_DIM + Grid.TILE_MARGIN;
     part.y = y * Grid.TILE_DIM + Grid.TILE_MARGIN;
     part.z = 1;
     part.data = Grid.tileData;
-    part.w = Grid.TILE_DIM - Grid.TILE_MARGIN * 2;
-    part.h = Grid.TILE_DIM - Grid.TILE_MARGIN * 2;
-    part.entity = this;
+    part.w = part.h = Grid.TILE_DIM - Grid.TILE_MARGIN * 2;
+    part.dw = part.dh = 1;
   }
   
   public function partClick():Void {

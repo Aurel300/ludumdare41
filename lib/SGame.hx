@@ -34,12 +34,7 @@ class SGame extends JamState {
     build = P3DBuild.build(
          Anchor("rv")
         ,[
-          Offset([Box(rv >> new Cut(0, 56, 64, 32), [
-               rv >> new Cut(0, 8, 64, 46)
-              ,rv >> new Cut(64, 8, 32, 46)
-              ,rv >> new Cut(96, 8, 64, 46)
-              ,rv >> new Cut(160, 8, 32, 46)
-            ])], -32, -16, 0, 0)
+           Offset([P3DBuild.autoBox(rv, 0, 8, 64, 32, 48)], -32, -16, 0, 0)
           ,Offset([Wall(rv >> new Cut(64, 56, 32, 46), 9)], 24, -16, 0, 0)
           ,Offset([Floor(rv >> new Cut(96, 56, 13, 32), 0, 32)], 22, -16, 22, 0)
         ]
@@ -59,14 +54,14 @@ class SGame extends JamState {
       case Roam:
       p3d.renderBuild(plot, build);
       case TBS:
-      zoomTarget = .5;
+      //zoomTarget = 0.9;
       p3d.renderGrid(plot, grid);
       p3d.renderBuild(plot, build);
     }
     
-    plot.render(ab, -app.mouse.x, -app.mouse.y);
+    plot.render(ab, 0, 0);
     
-    board.render(ab);
+    //board.render(ab);
     
     if (ph("t") == 0) {
       p3d.camAngle = (p3d.camAngle + Trig.densityAngle + (1).negposI(ak(KeyQ), ak(KeyE))) % Trig.densityAngle;
@@ -84,7 +79,7 @@ class SGame extends JamState {
     
     p3d.camX.target(p3d.camTX, 29);
     p3d.camY.target(p3d.camTY, 29);
-    p3d.zoom.target(zoomTarget, 19);
+    p3d.zoom.target(zoomTarget + (2.0).negposF(ak(KeyR), ak(KeyF)), 19);
     
     //build.angle = (app.mouse.x >> 2) % 36;
     //build.tilt = (app.mouse.y >> 2) % 36;
@@ -102,8 +97,8 @@ class SGame extends JamState {
   }
   
   override public function mouseClick(mx, my) {
-    plot.click(mx, my);
-    board.click(mx, my);
+       plot.click(mx, my)
+    || board.click(mx, my);
   }
 }
 

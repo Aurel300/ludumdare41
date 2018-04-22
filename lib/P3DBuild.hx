@@ -5,6 +5,16 @@ import sk.thenet.bmp.Bitmap;
 import sk.thenet.bmp.manip.*;
 
 class P3DBuild {
+  public static function autoBox(b:Bitmap, x:Int, y:Int, w:Int, h:Int, d:Int):P3DSkeleton {
+    var f = b.fluent;
+    return Box(f >> new Cut(x, y + d, w, h), [
+         f >> new Cut(x, y, w, d)
+        ,f >> new Cut(x + w, y, h, d)
+        ,f >> new Cut(x + w + h, y, w, d)
+        ,f >> new Cut(x + w + h + w, y, h, d)
+      ]);
+  }
+  
   public static function build(r:P3DSkeleton, s:Array<P3DSkeleton>, ent:Entity):P3DBuild {
     var ret = new P3DBuild();
     var parts:Array<P3DPart> = null;

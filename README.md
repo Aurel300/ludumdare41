@@ -19,7 +19,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - cooking
    - assembling burger
-     <- burger "model"
+     <- burger model + graphics
      <- plates
      <- gui to deploy / trash
 
@@ -42,7 +42,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
  - graphics
    - pseudo-3D renderer - 10h
      - [x] walls, floors, tilts
-     - [.] shadows
      - [x] simple 3D build method
    - particle effecs
    - [.] time progression via palette shifts
@@ -60,4 +59,4 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 ## Bucket ##
 
  - PERF cull back faces
-
+ - VIS shadows

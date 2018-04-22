@@ -5,7 +5,7 @@ class Pal {
   public static var light:Vector<Colour>;
   
   public static function init(b:Bitmap):Void {
-    reg = new Vector<Colour>(8);
+    reg = new Vector<Colour>(26);
     light = new Vector<Colour>(32 * 8);
     for (i in 0...reg.length) {
       reg[i] = b.get(i * 4, 3);

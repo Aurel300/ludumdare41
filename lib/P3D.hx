@@ -36,7 +36,13 @@ class P3D {
   }
   
   public function renderGrid(to:Plot, g:Grid):Void {
-    for (t in g.renTiles) render(to, t);
+    for (ti in 0...g.renTiles.length) {
+      render(to, g.renTiles[ti]);
+      if (g.units[ti] != null) {
+        g.units[ti].update();
+        for (l in g.units[ti].layers) renderBuild(to, l);
+      }
+    }
   }
   
   public function render(to:Plot, p:P3DPart):Void {
@@ -156,7 +162,7 @@ class P3D {
           to.plot(
                x, y
               ,(p1.z + projY * zw + projX * zh).floor()
-              ,p.data[(projY * p.w).floor().clampI(0, p.w - 1) + (projX * p.h).floor().clampI(0, p.h - 1) * p.w]
+              ,p.data[(projY * p.dw).floor().clampI(0, p.dw - 1) + (projX * p.dh).floor().clampI(0, p.dh - 1) * p.dw]
               ,lightMatrix[lval + (y % 4) * 4 + (x % 4)]
               ,ent
             );

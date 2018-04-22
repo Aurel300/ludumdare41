@@ -93,7 +93,7 @@ class Plot {
   public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int, ent:Int):Void {
     var i = x + y * w;
     if (col == 0) return;
-    if (z > zbuf[i]) {
+    if (z > zbuf[i] || zbuf[i] == 0) {
       zbuf[i] = z;
       if (ent > 0) ibuf[i] = ent;
       if (col > 0) {
@@ -115,11 +115,13 @@ class Plot {
     }
   }
   
-  public function click(x:Int, y:Int):Void {
+  public function click(x:Int, y:Int):Bool {
     var i = x + y * w;
     if (ibuf[i] != 0) {
       ents[ibuf[i]].partClick();
+      return true;
     }
+    return false;
   }
 }
 

@@ -141,7 +141,7 @@ class Board {
     timer++;
   }
   
-  public function click(mx, my) {
+  public function click(mx, my):Bool {
     switch (task) {
       case CutCarrot(marks):
       if (timer.withinI(320, 640)) {
@@ -185,6 +185,7 @@ class Board {
       }
       case _:
     }
+    return true;
   }
 }
 

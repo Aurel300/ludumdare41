@@ -1,4 +1,5 @@
 pal:psd/pal.psd:png/pal.png
 rv:psd/rv.psd:png/rv.png
 ing:psd/ing.psd:png/ing.png
+unit:psd/unit.psd:png/unit.png
 gui:psd/gui.psd:png/gui.png
