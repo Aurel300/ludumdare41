@@ -40,4 +40,13 @@ class P3DPart {
   public function new(entity:Entity) {
     this.entity = entity;
   }
+  
+  public function remap(map:Map<Int, Int>):Void {
+    if (data == null) return;
+    for (i in 0...data.length) {
+      if (map.exists(data[i])) {
+        data[i] = map[data[i]];
+      }
+    }
+  }
 }

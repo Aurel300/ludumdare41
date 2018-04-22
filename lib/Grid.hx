@@ -36,6 +36,11 @@ class Grid {
     b.gridY = 2;
     b.addLayer(BunBottom);
     b.addLayer(Tomato);
+    b.addLayer(Carrot);
+    b.addLayer(Patty(1));
+    b.addLayer(Cheese);
+    b.addLayer(Cucumber);
+    b.addLayer(Lettuce);
     b.addLayer(BunTop);
     units[2 + 2 * 5] = b;
   }
