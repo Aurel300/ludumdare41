@@ -60,3 +60,44 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - PERF cull back faces
  - VIS shadows
+
+## Music list ##
+
+ - roaming / driving - chill, peaceful, ambient
+ - encounter
+   - start tune?
+   - win tune?
+   - loss tune?
+   - combat / cooking music
+
+## Sound list ##
+
+ - on cutting board
+   - knife taken out of holder (metallic swoosh)
+   - cut carrot
+   - cut tomato / cucumber (squishy)
+   - cut burger bun / bread
+   - meat tenderising (tenderiser hitting patty)
+ - on grill
+   - patty grilling start
+   - patty grilling loop
+   - patty burning
+   - patty flip
+ - placement (ingredient placed on something else)
+   - burger bun
+   - tomato slices / cucumber slices
+   - patty
+   - lettuce
+   - cheese slice
+ - condiments
+   - mustard / ketchup / mayo / tobasco squeezed onto something
+   - salt / pepper shake
+ - engine noises
+ - paper (taking a single page into hand)
+ - combat sounds
+   - generic attack
+   - generic hit
+ - gui sounds (maybe these should be synthesised with e.g. bfxr ?)
+   - select unit
+   - deselect unit
+   - switch screens / swoosh (combat screen slide transitioned into cookery screen)
