@@ -15,10 +15,11 @@ class Board {
         ,"knife" => f >> new Cut(232, 16, 168, 48)
         ,"knife_ghost" => f >> new Cut(232, 64, 168, 48)
         ,"tenderiser" => f >> new Cut(232, 112, 168, 56)
+        ,"interiour" => f >> new Cut(0, 232, 320 * 2, 240)
       ];
   }
   
-  public var task:BoardTask;
+  public var task:BoardTask = None;
   public var obj:Bitmap;
   public var objX:Float = 0;
   public var objY:Float = 0;
@@ -31,9 +32,10 @@ class Board {
   public var knifeTX:Float = Main.W + 10;
   public var knifeTY:Float = 40;
   public var knifeDip:Int = 0;
-  public var bpieces:Array<Piece> = [];
-  public var pieces:Array<Piece> = [];
+  public var bpieces = new Array<Piece>();
+  public var pieces = new List<Piece>();
   public var timer:Int;
+  var taskLen:Int;
   
   public function new() {
     //start(CutCarrot(null));
@@ -41,15 +43,25 @@ class Board {
   }
   
   public function start(task:BoardTask) {
-    bpieces = [];
+    bpieces = null;
     this.task = (switch (task) {
         case CutCarrot(_):
+        obj = as["carrot"];
+        objW = as["carrot"].width;
+        objTX = 40;
+        objTY = 80;
+        taskLen = 640;
         CutCarrot([ for (i in 1...6) {
             55 + i * 38 + FM.prng.nextMod(18);
           } ]);
         case Tenderise:
+        taskLen = 640;
+        obj = null;
+        objTX = 60;
+        objTY = 120;
+        objW = 0;
         knifeTX = 160;
-        knifeTY = 50;
+        knife = as["tenderiser"];
         bpieces = [ for (y in 0...4) for (x in 0...6) {
              b: as["patty"]
             ,bx: x * 32
@@ -68,18 +80,13 @@ class Board {
   }
   
   public function render(to:Bitmap):Void {
-    to.fill(Pal.reg[1]);
-    var taskLen = 0;
+    to.blitAlpha(as["interiour"], -320, 0);
     switch (task) {
       case None:
       knifeTX = Main.W + 10;
       knifeTY = 40;
       objTY = Main.H + 10;
       case CutCarrot(marks):
-      obj = as["carrot"];
-      if (timer == 0) objW = as["carrot"].width;
-      objTX = 40;
-      objTY = 80;
       knifeTY = 40;
       if (timer == 0 || timer == 320) Sfx.play("cut-start");
       if (timer < 320) {
@@ -93,31 +100,26 @@ class Board {
         knife = as["knife"];
         knifeTX = Main.W - (timer - 320);
       }
-      taskLen = 640;
       case Tenderise:
-      obj = null;
-      objTX = 60;
-      objTY = 120;
-      knife = as["tenderiser"];
-      taskLen = 640;
+      knifeTY = 50;
     }
     if (timer >= taskLen) {
-      task = None;
-      timer = 0;
+      start(CutCarrot(null));
+      // task = None;
+      // timer = 0;
     }
-    for (p in bpieces) {
+    if (bpieces != null) for (p in bpieces) {
       to.blitAlphaRect(p.b, (objX + p.x).floor(), (objY + p.y).floor(), p.bx, p.by, p.bw, p.bh);
     }
     to.blitAlpha(knife, knifeX.floor(), knifeY.floor());
     if (obj != null) to.blitAlphaRect(obj, objX.floor(), objY.floor(), 0, 0, objW, obj.height);
-    pieces = [ for (p in pieces) {
-        if (p.y > Main.H) continue;
-        to.blitAlphaRect(p.b, p.x.floor(), p.y.floor(), p.bx, p.by, p.bw, p.bh);
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.09;
-        p;
-      } ];
+    for (p in pieces) {
+      if (p.y > Main.H) pieces.remove(p);
+      to.blitAlphaRect(p.b, p.x.floor(), p.y.floor(), p.bx, p.by, p.bw, p.bh);
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.09;
+    }
     objX.target(objTX, 19);
     objY.target(objTY, 19);
     if (task == None) {
@@ -164,6 +166,7 @@ class Board {
           });
       }
       case Tenderise:
+      Sfx.play("cut");
       knifeTX = 80 + FM.prng.nextMod(100);
       knifeTY = 50 + FM.prng.nextMod(30);
       knifeDip += 1;

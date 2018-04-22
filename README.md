@@ -15,6 +15,11 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ---
 
+## Current focus ##
+
+ - cooking
+   - assembling burger
+
 ## TODO ##
 
  - gameplay
@@ -24,7 +29,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
      - locations
      - arcs
    - cooking - 4h
-     - methods
+     - [.] methods
      - [.] ingredients
      - timers
      - stats
