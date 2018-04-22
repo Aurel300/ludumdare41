@@ -35,6 +35,10 @@ class P3D {
     for (p in b.parts) render(to, p);
   }
   
+  public function renderGrid(to:Plot, g:Grid):Void {
+    for (t in g.renTiles) render(to, t);
+  }
+  
   public function render(to:Plot, p:P3DPart):Void {
     for (s in p.sub) render(to, s);
     if (!p.display) return;

@@ -17,6 +17,7 @@ class Plot {
   var renvec:Vector<Colour>;
   var ents:Vector<Entity>;
   var entIndex:Int;
+  var lastHover:Entity;
   
   public function new() {
     zbuf = new Uint8ClampedArray(Main.WH);
@@ -33,7 +34,7 @@ class Plot {
     entIndex = 1;
   }
   
-  public function render(to:Bitmap):Void {
+  public function render(to:Bitmap, mx:Int, my:Int):Void {
     for (vi in 0...Main.WH) renvec[vi] = Pal.light[pbuf[vi] + (lbuf[vi] << 5)];
     to.setVector(renvec);
     untyped __js__("{0}.fill(0)", zbuf);
@@ -56,8 +57,18 @@ class Plot {
         pbuf[i] = col;
         lbuf[i] = light;
       } else {
-        lbuf[i]++;
+        lbuf[i] -= col;
       }
+    }
+  }
+  
+  public function mouseMove(x:Int, y:Int):Void {
+    var i = x + y * Main.W;
+    var curHover = (ibuf[i] != 0 ? ents[ibuf[i]] : null);
+    if (lastHover != null && lastHover != curHover) lastHover.partMLeave();
+    lastHover = curHover;
+    if (curHover != null) {
+      curHover.partMOver();
     }
   }
   

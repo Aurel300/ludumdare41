@@ -8,6 +8,11 @@ class Grid {
       for (vi in 0...ret.length) ret[vi] = -1;
       ret;
     };
+  public static var tileDataHover:Vector<Int> = {
+      var ret = new Vector((TILE_DIM - 2 * TILE_MARGIN) * (TILE_DIM - 2 * TILE_MARGIN));
+      for (vi in 0...ret.length) ret[vi] = -3;
+      ret;
+    };
   
   public var x:Int = 0;
   public var y:Int = 0;
@@ -15,7 +20,6 @@ class Grid {
   public var h:Int;
   
   public var units:Vector<Unit>;
-  
   public var renTiles:Vector<P3DPart>;
   
   var renEnts:Vector<GridTile>;
@@ -32,10 +36,6 @@ class Grid {
       renTiles[vi] = renEnts[vi].part;
       vi++;
     }
-  }
-  
-  public function render(to:Plot, p3d:P3D):Void {
-    for (t in renTiles) p3d.render(to, t);
   }
 }
 
@@ -55,7 +55,16 @@ class GridTile implements Entity {
   }
   
   public function partClick():Void {
-    trace("?");
-    part.z += 5;
+    
+  }
+  
+  public function partMOver():Void {
+    part.z = 3;
+    part.data = Grid.tileDataHover;
+  }
+  
+  public function partMLeave():Void {
+    part.z = 1;
+    part.data = Grid.tileData;
   }
 }

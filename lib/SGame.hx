@@ -20,6 +20,8 @@ class SGame extends JamState {
   
   var grid:Grid;
   
+  var board:Board;
+  
   public function new(app) super("game", app);
   
   override public function to() {
@@ -45,9 +47,12 @@ class SGame extends JamState {
       );
     
     grid = new Grid(5, 5);
+    
+    board = new Board();
   }
   
   override public function tick() {
+    /*
     plot.prerender();
     
     var zoomTarget = 1.0;
@@ -55,11 +60,14 @@ class SGame extends JamState {
       case Roam:
       case TBS:
       zoomTarget = .5;
-      grid.render(plot, p3d);
+      p3d.renderGrid(plot, grid);
       p3d.renderBuild(plot, build);
     }
     
-    plot.render(ab);
+    plot.render(ab, app.mouse.x, app.mouse.y);
+    */
+    
+    board.render(ab);
     
     if (ph("t") == 0) {
       p3d.camAngle = (p3d.camAngle + Trig.densityAngle + (1).negposI(ak(KeyQ), ak(KeyE))) % Trig.densityAngle;
@@ -91,8 +99,13 @@ class SGame extends JamState {
     */
   }
   
+  override public function mouseMove(mx, my) {
+    plot.mouseMove(mx, my);
+  }
+  
   override public function mouseClick(mx, my) {
     plot.click(mx, my);
+    board.click(mx, my);
   }
 }
 

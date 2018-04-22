@@ -28,7 +28,15 @@ class Main extends Application {
              Embed.getBitmap("test", "png/test.png")
             ,Embed.getBitmap("rv", "png/rv.png")
             ,Embed.getBitmap("pal", "png/pal.png")
+            ,Embed.getBitmap("ing", "png/ing.png")
+            ,Embed.getSound("snd-cut", "wav/cut.wav")
+            ,Embed.getSound("snd-cut-start", "wav/cut-start.wav")
             ,new AssetBind(["pal"], (am, _) -> { Pal.init(am.getBitmap("pal")); false; })
+            ,new AssetBind(["ing"], (am, _) -> { Board.init(am.getBitmap("ing")); false; })
+            ,new AssetBind([
+                 "snd-cut"
+                ,"snd-cut-start"
+              ], (am, _) -> { Sfx.init(am); false; })
           ])
         ,Keyboard
         ,Mouse
