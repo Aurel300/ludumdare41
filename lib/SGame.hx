@@ -26,7 +26,7 @@ class SGame extends JamState {
   
   override public function to() {
     p3d = new P3D();
-    plot = new Plot();
+    plot = new Plot(Main.W, Main.H);
     
     phasers["t"] = new Phaser(3);
     
@@ -52,20 +52,19 @@ class SGame extends JamState {
   }
   
   override public function tick() {
-    /*
-    plot.prerender();
+    plot.prerender(false);
     
     var zoomTarget = 1.0;
     switch (mode) {
       case Roam:
+      p3d.renderBuild(plot, build);
       case TBS:
       zoomTarget = .5;
       p3d.renderGrid(plot, grid);
       p3d.renderBuild(plot, build);
     }
     
-    plot.render(ab, app.mouse.x, app.mouse.y);
-    */
+    plot.render(ab, -app.mouse.x, -app.mouse.y);
     
     board.render(ab);
     
@@ -85,8 +84,7 @@ class SGame extends JamState {
     
     p3d.camX.target(p3d.camTX, 29);
     p3d.camY.target(p3d.camTY, 29);
-    
-    //p3d.zoom.target(zoomTarget, 19);
+    p3d.zoom.target(zoomTarget, 19);
     
     //build.angle = (app.mouse.x >> 2) % 36;
     //build.tilt = (app.mouse.y >> 2) % 36;

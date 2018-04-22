@@ -19,6 +19,9 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - cooking
    - assembling burger
+     <- burger "model"
+     <- plates
+     <- gui to deploy / trash
 
 ## TODO ##
 

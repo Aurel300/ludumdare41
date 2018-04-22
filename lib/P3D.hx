@@ -69,8 +69,8 @@ class P3D {
     // initial
     var prex:Float = p.x - camX;
     var prey:Float = p.y - camY;
-    var bx:Float = (prex * Trig.cosAngle[camAngle] - prey * Trig.sinAngle[camAngle]) * zoom + Main.W2;
-    var by:Float = (prex * Trig.sinAngle[camAngle] + prey * Trig.cosAngle[camAngle]) * zoom + Main.H;
+    var bx:Float = (prex * Trig.cosAngle[camAngle] - prey * Trig.sinAngle[camAngle]) * zoom + to.w / 2;
+    var by:Float = (prex * Trig.sinAngle[camAngle] + prey * Trig.cosAngle[camAngle]) * zoom + to.h;
     var bz:Float = p.z * zoom;
     var scw = p.w * zoom;
     var sch = p.h * zoom;
@@ -114,12 +114,12 @@ class P3D {
     var rech = maxy - miny;
     
     if (recw != 0 && rech != 0
-        && minx < Main.W && maxx >= 0
-        && miny < Main.H && maxy >= 0) {
+        && minx < to.w && maxx >= 0
+        && miny < to.h && maxy >= 0) {
       minx = minx.maxI(0);
       miny = miny.maxI(0);
-      maxx = maxx.minI(Main.W - 1);
-      maxy = maxy.minI(Main.H - 1);
+      maxx = maxx.minI(to.w - 1);
+      maxy = maxy.minI(to.h - 1);
       
       // side vectors
       var vw = pr2.subtractC(pr1);

@@ -35,11 +35,17 @@ class Board {
   public var bpieces = new Array<Piece>();
   public var pieces = new List<Piece>();
   public var timer:Int;
+  public var spaceX:Float = 0;
+  public var spaceTX:Float = 0;
   var taskLen:Int;
+  var plots:Array<Plot>;
+  var slots:Array<Unit>;
   
   public function new() {
     //start(CutCarrot(null));
     start(Tenderise);
+    plots = [ for (i in 0...3) new Plot(106, 216) ];
+    slots = [ for (i in 0...3) null ];
   }
   
   public function start(task:BoardTask) {
@@ -80,7 +86,8 @@ class Board {
   }
   
   public function render(to:Bitmap):Void {
-    to.blitAlpha(as["interiour"], -320, 0);
+    to.blitAlpha(as["interiour"], -spaceX.floor(), 0);
+    
     switch (task) {
       case None:
       knifeTX = Main.W + 10;
@@ -122,6 +129,7 @@ class Board {
     }
     objX.target(objTX, 19);
     objY.target(objTY, 19);
+    spaceX.targetMin(spaceTX, 29, .5);
     if (task == None) {
       knifeX.target(knifeTX, 29);
       knifeY.target((knifeDip > 0 ? 200 : 0) + knifeTY, 29);
