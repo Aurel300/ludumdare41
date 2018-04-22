@@ -24,9 +24,10 @@ class Burger extends Unit {
   
   public function new() {
     super();
+    addLayer(BunBottom);
   }
   
-  public function addLayer(t:BurgerLayer, ?map:Map<Int, Int>):Void {
+  public function addLayer(t:BurgerLayer, ?map:Map<Int, Int>):P3DBuild {
     var off = 0;
     var layer = P3DBuild.build(
         Anchor("")
@@ -39,7 +40,7 @@ class Burger extends Unit {
             case Lettuce: off = 1; Unit.ss["lettuce"];
             case Cheese: off = 1; Unit.ss["cheese"];
             case BunBottom: off = 5; Unit.ss["bunBottom"];
-          }, 0, 0, lastZ, lastZ % Trig.densityAngle)]
+          }, 0, 0, lastZ, 0)]
         ,null
       );
     if (map != null) {
@@ -47,16 +48,6 @@ class Burger extends Unit {
     }
     layers.push(layer);
     lastZ += off;
+    return layer;
   }
-}
-
-enum BurgerLayer {
-  BunTop;
-  Tomato;
-  Carrot;
-  Cucumber;
-  Patty(cook:Int);
-  Lettuce;
-  Cheese;
-  BunBottom;
 }

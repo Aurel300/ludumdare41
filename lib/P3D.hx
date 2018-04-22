@@ -29,6 +29,8 @@ class P3D {
   public var camTX:Float = 0;
   public var camTY:Float = 0;
   public var camAngle:Int = 0;
+  public var offX:Float = 0;
+  public var offY:Float = 0;
   
   public function new() {
     
@@ -81,8 +83,8 @@ class P3D {
     // initial
     var prex:Float = p.x - camX;
     var prey:Float = p.y - camY;
-    var bx:Float = (prex * Trig.cosAngle[camAngle] - prey * Trig.sinAngle[camAngle]) * zoom + to.w / 2;
-    var by:Float = (prex * Trig.sinAngle[camAngle] + prey * Trig.cosAngle[camAngle]) * zoom + to.h;
+    var bx:Float = (prex * Trig.cosAngle[camAngle] - prey * Trig.sinAngle[camAngle]) * zoom + to.w / 2 + offX;
+    var by:Float = (prex * Trig.sinAngle[camAngle] + prey * Trig.cosAngle[camAngle]) * zoom + to.h + offY;
     var bz:Float = p.z * zoom;
     var scw = p.w * zoom;
     var sch = p.h * zoom;

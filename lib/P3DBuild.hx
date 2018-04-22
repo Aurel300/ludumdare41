@@ -49,7 +49,6 @@ class P3DBuild {
         var p = new P3DPart(ent);
         p.display = false;
         var r = [p];
-        for (ss in sub) r = r.concat(subBuild(p, ss));
         constr.push(() -> {
             p.angle = (root.angle + oa) % Trig.densityAngle;
             p.tilt = root.tilt;
@@ -57,6 +56,7 @@ class P3DBuild {
             p.y = root.y + (Trig.sinAngle[root.angle] * ox + Trig.cosAngle[root.angle] * oy).floor();
             p.z = root.z + oz;
           });
+        for (ss in sub) r = r.concat(subBuild(p, ss));
         r;
         case Anchor(id):
         var p = new P3DPart(ent);
@@ -130,7 +130,7 @@ class P3DBuild {
     }
     parts = subBuild(null, r);
     ret.root = parts[0];
-    constr.push(() -> {
+    constr.unshift(() -> {
         ret.root.angle = ret.angle;
         ret.root.tilt = ret.tilt;
         ret.root.x = ret.x;

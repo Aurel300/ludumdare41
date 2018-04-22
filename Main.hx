@@ -35,12 +35,14 @@ class Main extends Application {
             ,Embed.getBitmap("ing", "png/ing.png")
             ,Embed.getBitmap("unit", "png/unit.png")
             ,Embed.getBitmap("gui", "png/gui.png")
+            ,Embed.getBitmap(font.FontNS.ASSET_ID, "png/font.png")
             ,Embed.getSound("snd-cut", "wav/cut.wav")
             ,Embed.getSound("snd-cut-start", "wav/cut-start.wav")
-            ,new AssetBind(["pal"], (am, _) -> { Pal.init(am.getBitmap("pal")); false; })
+            ,new AssetTrigger("pal-t", ["pal"], (am, _) -> { Pal.init(am.getBitmap("pal")); false; })
+            ,new AssetTrigger("text-t", [font.FontNS.ASSET_ID, "pal-t"], (am, _) -> { Text.init(am); false; })
             ,new AssetBind(["ing"], (am, _) -> { Board.init(am.getBitmap("ing")); false; })
             ,new AssetBind(["unit"], (am, _) -> { Unit.init(am.getBitmap("unit")); false; })
-            ,new AssetBind(["gui"], (am, _) -> { GUI.init(am.getBitmap("gui")); false; })
+            ,new AssetBind(["gui", "text-t"], (am, _) -> { GUI.init(am.getBitmap("gui")); false; })
             ,new AssetBind([
                  "snd-cut"
                 ,"snd-cut-start"

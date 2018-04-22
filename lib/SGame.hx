@@ -61,7 +61,8 @@ class SGame extends JamState {
     }
     
     plot.render(ab, 0, 0);
-    board.render(ab, ((1 - Timing.quadInOut.getF(boardBT.valueF)) * Main.H).floor());
+    board.render(ab, ((1 - Timing.quadInOut.getF(boardBT.valueF)) * Main.H).floor(), app.mouse.x, app.mouse.y);
+    GUI.renderAll(ab, app.mouse.x, app.mouse.y);
     
     if (boardBT.isOff) {
       if (ph("t") == 0) {
@@ -99,7 +100,8 @@ class SGame extends JamState {
   
   override public function mouseClick(mx, my) {
     if (!boardBT.isOn && !boardBT.isOff) return;
-       (boardBT.isOn ? board.click(mx, my) : false)
+       GUI.clickAll(mx, my)
+    || (boardBT.isOn ? board.click(mx, my) : false)
     || plot.click(mx, my);
   }
   
