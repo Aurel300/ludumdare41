@@ -25,7 +25,7 @@ class Text {
     return to;
   }
   
-  public static function render(to:Bitmap, x:Int, y:Int, t:String):Void {
-    fonts[0].render(to, x, y, t, fonts);
+  public static function render(to:Bitmap, x:Int, y:Int, t:String) {
+    return fonts[0].render(to, x, y, t, fonts);
   }
 }

@@ -90,11 +90,11 @@ class Plot {
     return entIndex++;
   }
   
-  public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int, ent:Int):Void {
+  public inline function plot(x:Int, y:Int, z:Int, col:Int, light:Int, ent:Int, world:Bool):Void {
     var i = x + y * w;
     if (col == 0) return;
     if (z > zbuf[i] || zbuf[i] == 0) {
-      zbuf[i] = z;
+      if (!world) zbuf[i] = z;
       if (ent > 0) ibuf[i] = ent;
       if (col > 0) {
         pbuf[i] = col;

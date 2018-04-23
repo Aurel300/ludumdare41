@@ -36,6 +36,11 @@ class P3D {
     
   }
   
+  public function renderWorld(to:Plot, w:World):Void {
+    w.update();
+    for (p in w.parts) render(to, p);
+  }
+  
   public function renderBuild(to:Plot, b:P3DBuild):Void {
     b.update();
     for (p in b.parts) render(to, p);
@@ -133,8 +138,8 @@ class P3D {
         && miny < to.h && maxy >= 0) {
       minx = minx.maxI(0);
       miny = miny.maxI(0);
-      maxx = maxx.minI(to.w - 1);
-      maxy = maxy.minI(to.h - 1);
+      maxx = maxx.minI(to.w);
+      maxy = maxy.minI(to.h);
       
       // side vectors
       var vw = pr2.subtractC(pr1);
@@ -172,8 +177,9 @@ class P3D {
                x, y
               ,(p1.z + projY * zw + projX * zh).floor()
               ,p.data[(projY * p.dw).floor().clampI(0, p.dw - 1) + (projX * p.dh).floor().clampI(0, p.dh - 1) * p.dw]
-              ,lightMatrix[lval + (y % 4) * 4 + (x % 4)]
+              ,p.world ? 2 : lightMatrix[lval + (y % 4) * 4 + (x % 4)]
               ,ent
+              ,p.world
             );
         }
       }

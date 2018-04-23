@@ -12,6 +12,15 @@ class GUI {
   public static var banners:Map<UnitRank, Bitmap>;
   public static var traits:Map<UnitTrait, Bitmap>;
   public static var stars:Array<Bitmap>;
+  public static var cursors:Map<Cursor, Bitmap>;
+  public static var cursor:Cursor = Normal;
+  public static var tooltip:String = "";
+  
+  static var lastTooltip:String = "";
+  static var tooltipW:Int = 0;
+  static var tooltipX:Float = Main.W;
+  static var tooltipTX:Int = Main.W;
+  static var tooltipB:Bitmap;
   
   public static var panels:Map<String, GUI>;
   
@@ -30,7 +39,11 @@ class GUI {
         ,"turn" => b >> new Cut(128, 96, 120, 120)
         ,"turnBit" => b >> new Cut(128, 96 + 120, 120, 120)
         ,"box" => b >> new Cut(96, 8, 16, 16)
+        ,"hud" => b >> new Cut(144, 40, 112, 24)
+        ,"hudHealth" => b >> new Cut(144, 64, 61, 7)
+        ,"hudTimer" => b >> new Cut(144, 72, 62, 5)
       ];
+    tooltipB = Platform.createBitmap(Main.W2, 12, 0);
     banners = [
          RankS => Text.banner(Platform.createBitmap(40, 32, 0), "S")
         ,RankA => Text.banner(Platform.createBitmap(40, 32, 0), "A")
@@ -38,8 +51,15 @@ class GUI {
         ,RankD => Text.banner(Platform.createBitmap(40, 32, 0), "D")
         ,RankF => Text.banner(Platform.createBitmap(40, 32, 0), "F")
       ];
-    stars = [ for (y in 0...2) for (x in 0...3) b >> new Cut(112 + x * 16, 8 + y * 16, 12, 12) ];
     var i = 0;
+    cursors = [
+         Normal => b >> new Cut(160 + i++ * 16, 8, 16, 16)
+        ,Hover => b >> new Cut(160 + i++ * 16, 8, 16, 16)
+        ,Left => b >> new Cut(160 + i++ * 16, 8, 16, 16)
+        ,Right => b >> new Cut(160 + i++ * 16, 8, 16, 16)
+      ];
+    stars = [ for (y in 0...2) for (x in 0...3) b >> new Cut(112 + x * 16, 8 + y * 16, 12, 12) ];
+    i = 0;
     traits = [
          Healer => b >> new Cut(i++ * 17, 240, 17, 17)
         ,Smell => b >> new Cut(i++ * 17, 240, 17, 17)
@@ -96,18 +116,41 @@ class GUI {
             }
             t;
           }])
+        ,"hud_battle" => new GUI(136, Main.H, 136, Main.H - 24, [as["hud"], Platform.createBitmap(112, 24, 0)])
       ];
     panels["drop"].ignoreClicks = true;
     Text.render(panels["trash"].bs[0], 4, 30, "Destroy!");
     Text.render(panels["deploy"].bs[0], 8, 24, "Deploy!");
+    panels["timer"].panelTooltip = "Stop minigame";
     panels["trash"].moy = -2;
+    panels["trash"].panelTooltip = "Dispose of item/burger";
     panels["deploy"].moy = 2;
+    panels["deploy"].panelTooltip = "Use burger in combat";
+    panels["stats"].ignoreClicks = true;
+    panels["dropInfo"].ignoreClicks = true;
     panels["trans_fight"].state = new Bitween(90);
+    panels["trans_fight"].ignoreClicks = true;
     panels["trans_fight2"].state = new Bitween(130);
+    panels["trans_fight2"].ignoreClicks = true;
     panels["trans_win"].state = new Bitween(90);
+    panels["trans_win"].ignoreClicks = true;
     panels["trans_win2"].state = new Bitween(130);
+    panels["trans_win2"].ignoreClicks = true;
     panels["trans_loss"].state = new Bitween(90);
+    panels["trans_loss"].ignoreClicks = true;
     panels["trans_loss2"].state = new Bitween(130);
+    panels["trans_loss2"].ignoreClicks = true;
+    var hud = panels["hud_battle"];
+    hud.tick = function () {
+      if (Main.g.mode != TBS) return;
+      hud.panelTooltip = (Main.g.boardY() == 0 ? "Switch to combat" : "Switch to kitchen");
+      hud.px1 = hud.px2 = 104.maxI(panels["dropInfo"].px + panels["dropInfo"].w + 8);
+      hud.py2 = (Main.g.boardY() - 24).maxI(0).floor();
+      hud.bs[1].fill(0);
+      hud.bs[1].blitAlphaRect(as["hudHealth"], 19, 8, 0, 0, 1 + 6 * Main.g.grid.rv.stats.hp, 7);
+      hud.bs[1].blitAlphaRect(as["hudTimer"], 18, 0, 0, 0, (62 * Main.g.grid.playerTime).floor(), 5);
+      Text.render(hud.bs[1], 82, 2, Main.g.enemyTurn() ? "ENEMY\nTURN" : "YOUR\nTURN");
+    };
   }
   
   public static function clickAll(mx:Int, my:Int):Bool {
@@ -118,6 +161,8 @@ class GUI {
   }
   
   public static function renderAll(to:Bitmap, mx:Int, my:Int):Bool {
+    var omx = mx;
+    var omy = my;
     var mo = false;
     for (p in panels) {
       if (p.render(to, mx, my)) {
@@ -125,6 +170,22 @@ class GUI {
         mx = my = -1;
       }
     }
+    if (tooltip != "") {
+      if (tooltip != lastTooltip) {
+        lastTooltip = tooltip;
+        tooltipB.fill(Pal.reg[2]);
+        tooltipW = Text.render(tooltipB, 1, 1, tooltip).x;
+      }
+      tooltipTX = Main.W - tooltipW - 2;
+    } else {
+      tooltipTX = Main.W;
+    }
+    tooltipX.target(tooltipTX, 19);
+    to.blitAlpha(tooltipB, tooltipX.floor(), Main.H - tooltipB.height);
+    if (mo) cursor = Hover;
+    to.blitAlpha(cursors[cursor], omx, omy);
+    cursor = Normal;
+    tooltip = "";
     return mo;
   }
   
@@ -199,6 +260,17 @@ class GUI {
   public var box:Int = 0;
   public var bs:Array<Bitmap>;
   public var ignoreClicks:Bool = false;
+  public var panelTooltip:String;
+  
+  public var px(get, never):Int;
+  private inline function get_px():Int {
+    return px1 + ((px2 - px1) * Timing.quadInOut.getF(state.valueF)).floor();
+  }
+  
+  public var py(get, never):Int;
+  private inline function get_py():Int {
+    return py1 + ((py2 - py1) * Timing.quadInOut.getF(state.valueF)).floor();
+  }
   
   public function new(px1:Int, py1:Int, px2:Int, py2:Int, bs:Array<Bitmap>) {
     this.px1 = px1;
@@ -214,8 +286,6 @@ class GUI {
   
   public function click(mx:Int, my:Int):Bool {
     if (!state.isOn || ignoreClicks) return false;
-    var px = px1 + ((px2 - px1) * Timing.quadInOut.getF(state.valueF)).floor();
-    var py = py1 + ((py2 - py1) * Timing.quadInOut.getF(state.valueF)).floor();
     if (mx.withinI(px, px + w - 1) && my.withinI(py, py + h - 1)) {
       action();
       return true;
@@ -230,8 +300,8 @@ class GUI {
     var mo:Bool = false;
     state.tick();
     if (state.isOff) return false;
-    var px = px1 + ((px2 - px1) * Timing.quadInOut.getF(state.valueF)).floor();
-    var py = py1 + ((py2 - py1) * Timing.quadInOut.getF(state.valueF)).floor();
+    var px = this.px;
+    var py = this.py;
     if (state.isOn && mx != -1 && my != -1 && mx.withinI(px, px + w - 1) && my.withinI(py, py + h - 1)) {
       px += mox;
       py += moy;
@@ -240,6 +310,7 @@ class GUI {
     for (b in bs) if (b != null) {
       to.blitAlpha(b, px + box, py);
     }
-    return mo;
+    if (!ignoreClicks && mo && panelTooltip != null) tooltip = panelTooltip;
+    return !ignoreClicks && mo;
   }
 }

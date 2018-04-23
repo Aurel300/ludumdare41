@@ -28,6 +28,6 @@ class Trig {
   
   public static function shortestAngle(from:Int, to:Int):Int {
     var ret = to - from;
-    return ret > 18 ? -ret.signI() : ret.signI();
+    return ret.absI() > 18 ? -ret.signI() : ret.signI();
   }
 }

@@ -28,6 +28,7 @@ class Board {
     };
   
   public static inline function pattyState(t:Int):Int {
+    if (t == 23 * 60) Sfx.play("burn");
     return (t < 3 * 60 ? 0 :
       (t < 13 * 60 ? 1 :
       (t < 23 * 60 ? 2 : 3)));
@@ -158,12 +159,16 @@ class Board {
   var dropLayer:P3DBuild;
   var score:Int;
   
+  var sizzle:Crossfade;
+  
   public function new() {
     plots = [ for (i in 0...3) new Plot(106, 126) ];
     p3d = new P3D();
     p3d.zoom = 3;
     p3d.camAngle = 3;
     p3d.offY = 90;
+    
+    sizzle = new Crossfade("sizzle");
     
     GUI.panels["deploy"].action = function () {
       switch (task) {
@@ -185,6 +190,14 @@ class Board {
     };
     GUI.panels["timer"].action = function () {
       timer = TASK_LENGTH - 1;
+    }; 
+    GUI.panels["hud_battle"].action = function () {
+      switch (task) {
+        case None | Stats(_):
+        Main.g.boardBT.toggle();
+        deinit();
+        case _:
+      }
     };
     
     reset();
@@ -223,7 +236,7 @@ class Board {
   public function initTask(task:BoardTask):BoardTask {
     timer = 0;
     return (switch (task) {
-        case CutCarrot(_):
+        case CutCarrot(_): Sfx.play("knife");
         GUI.show("timer");
         score = 0;
         obj = as["carrot"];
@@ -233,7 +246,7 @@ class Board {
         CutCarrot([ for (i in 1...6) {
             55 + i * 38 + FM.prng.nextMod(18);
           } ]);
-        case CutCucumber(_):
+        case CutCucumber(_): Sfx.play("knife");
         GUI.show("timer");
         score = 0;
         obj = as["cucumber"];
@@ -288,6 +301,8 @@ class Board {
         GUI.show("drop");
         task;
         case Put(l):
+        if (l == Pepsalt) Sfx.play("pepsalt");
+        if (l == Sauce) Sfx.play("sauce");
         dropLayer = slots[slotSelect].addLayer(l);
         deinit(); initTask(None);
         case SelectBurger(_) | SelectGrill(_):
@@ -341,17 +356,21 @@ class Board {
   }
   
   public function render(to:Bitmap, y:Int, mx:Int, my:Int):Void {
+    var doSizzle = false;
+    for (i in 0...4) if (grill[i] != None) doSizzle = true;
+    sizzle.tick(doSizzle, (1 - y / Main.H) * .7 + .3, -(640 - spaceX) / 640);
+    
     // render logic
     switch (task) {
       case None:
       case CutCarrot(marks) | CutCucumber(marks):
       knifeTY = 40;
-      if (timer == 0 || timer == 320) Sfx.play("cut-start");
+      if (timer == 5 || timer == 325) Sfx.play("cut-start");
       if (timer < 320) {
         knife = as["knife_ghost"];
         knifeTX = Main.W - timer;
         if (marks.indexOf(timer) != -1) {
-          Sfx.play("cut");
+          Sfx.play("cut1");
           knifeDip += 1;
         }
       } else {
@@ -394,6 +413,17 @@ class Board {
               && mx.withinI(curx, curx + 31)
               && my.withinI(36, 36 + 31)) {
             to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 2, 32, 32);
+            GUI.cursor = Hover;
+            GUI.tooltip = (switch (inventory[i]) {
+                case Carrot: "Cut carrot";
+                case Tomato: "Cut tomato";
+                case Patty: "Prepare patty";
+                case Cucumber: "Cut cucumber";
+                case Lettuce: "Place lettuce";
+                case Cheese: "Place cheese";
+                case Sauce: "Add special sauce";
+                case Pepsalt: "Add pepsalt";
+              });
             inventoryHover = i;
           } else {
             to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 0, 32, 32);
@@ -401,7 +431,7 @@ class Board {
         }
         curx += 35;
       }
-    
+      
       doSelect = (switch (task) {
           case None | SelectBurger(_): y == 0 && space == 0 && spaceX < 1;
           case _: false;
@@ -413,6 +443,8 @@ class Board {
         if (doSelect
             && mx.withinI(platePosX[i], platePosX[i] + 103)
             && my.withinI(platePosY[i], platePosY[i] + 54)) {
+          GUI.cursor = Hover;
+          GUI.tooltip = task == None ? "Select burger" : "Add to this burger";
           slotHover = i;
         }
         to.blitAlpha(as["plate"], platePosX[i] - spaceX.floor(), platePosY[i] + y - (slotHover == i ? 2 : 0));
@@ -453,6 +485,15 @@ class Board {
             && mx.withinI(pattyPosX[i], pattyPosX[i] + 119)
             && my.withinI(pattyPosY[i], pattyPosY[i] + 55)) {
           pattyHover = i;
+          GUI.cursor = Hover;
+          GUI.tooltip = (switch [task, grill[i]] {
+              case [None, None]: "Empty grill";
+              case [None, First(_, _)]: "Flip patty";
+              case [None, Second(_, _, _)]: "Take out patty";
+              case [SelectGrill(_), None]: "Place patty here";
+              case [SelectGrill(_), _]: "No room here";
+              case _: "";
+            });
           cury -= 2;
         }
         switch (grill[i]) {
@@ -466,6 +507,15 @@ class Board {
           if (s == 2 && (t >> 4) % 2 == 1) to.blitAlpha(GUI.as["timerEx"], (pattyPosX[i] - space3X).floor(), cury);
           case _:
         }
+      }
+      
+      if (mx < 10 && space > 0) {
+        GUI.cursor = Left;
+        GUI.tooltip = "Move left";
+      }
+      if (mx >= Main.W - 10 && space < 2) {
+        GUI.cursor = Right;
+        GUI.tooltip = "Move right";
       }
     }
     
@@ -553,14 +603,15 @@ class Board {
       switch (task) {
         case SelectGrill(ten):
         switch (grill[pattyHover]) {
-          case None: grill[pattyHover] = First(ten, 0);
+          case None: Sfx.play("sizzle-start");
+          grill[pattyHover] = First(ten, 0);
           deinit();
           case _: // TODO: let player know
         }
         case None:
         switch (grill[pattyHover]) {
-          case First(ten, t): grill[pattyHover] = Second(ten, t, 0);
-          case Second(ten, f, t): grill[pattyHover] = None;
+          case First(ten, t): Sfx.play("flip1"); grill[pattyHover] = Second(ten, t, 0);
+          case Second(ten, f, t): Sfx.play("flip2"); grill[pattyHover] = None;
           deinit(); start(SelectBurger(Drop(rankPatty(ten, f, t))));
           case _:
         }
@@ -572,7 +623,7 @@ class Board {
     switch (task) {
       case CutCarrot(marks) | CutCucumber(marks):
       if (timer.withinI(320, 640)) {
-        Sfx.play("cut");
+        Sfx.play("cut1");
         knifeDip += 2;
         var prevW = objW;
         objW = (knifeX + 20 - objX).floor();
@@ -604,7 +655,6 @@ class Board {
       }
       case Tenderise:
       score++;
-      Sfx.play("cut");
       knifeTX = 80 + FM.prng.nextMod(100);
       knifeTY = 50 + FM.prng.nextMod(30);
       knifeDip += 1;
@@ -615,6 +665,15 @@ class Board {
       }
       case Stats(_): deinit();
       case Drop(_): deinit();
+      case Stats(_) | None:
+      if (mx < 10 && space > 0) {
+        space--;
+        deinit();
+      }
+      if (mx >= Main.W - 10 && space < 2) {
+        space++;
+        deinit();
+      }
       case _:
     }
     return true;

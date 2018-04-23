@@ -110,8 +110,8 @@ class Unit {
     for (li in 0...layers.length) {
       var l = layers[li];
       l.angle = layerAngles[li] + angle;
-      l.x = gridX * Grid.TILE_DIM + Grid.TILE_HALF + subX;
-      l.y = gridY * Grid.TILE_DIM + Grid.TILE_HALF + subY;
+      l.x = (grid != null ? grid.x : 0) + gridX * Grid.TILE_DIM + Grid.TILE_HALF + subX;
+      l.y = (grid != null ? grid.y : 0) + gridY * Grid.TILE_DIM + Grid.TILE_HALF + subY;
     }
   }
   
@@ -127,6 +127,7 @@ class Unit {
   }
   
   public function hit(dmg:Int, poison:Bool):Void {
+    Sfx.play("hit" + (1 + FM.prng.nextMod(2)));
     stats.hp -= dmg;
     if (poison) stats.poison = 3;
     if (stats.hp <= 0) {

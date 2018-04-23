@@ -3,3 +3,5 @@ rv:psd/rv.psd:png/rv.png
 ing:psd/ing.psd:png/ing.png
 unit:psd/unit.psd:png/unit.png
 gui:psd/gui.psd:png/gui.png
+world:psd/world.psd:png/world.png
+interp:psd/interp.psd:png/interp.png

@@ -24,9 +24,21 @@ class Grid {
   public var turn:TurnState = Idle;
   
   var renEnts:Vector<GridTile>;
-  var rv:Unit;
+  public var rv:Unit;
   
-  public function new(w:Int, h:Int) {
+  public var playerTime(get, never):Float;
+  private inline function get_playerTime():Float {
+    return (switch (state) {
+        case Turn(true, t): t / TURN_TIME;
+        case _: 0;
+      });
+  }
+  
+  public function new() {}
+  
+  public function reset(x:Int, y:Int, w:Int, h:Int):Void {
+    this.x = x;
+    this.y = y;
     this.w = w;
     this.h = h;
     units = new Vector(w * h);
@@ -288,6 +300,8 @@ class Grid {
   }
   
   public function gridClick(x:Int, y:Int):Void {
+    Main.g.enterRoam(true);
+    return;
     var ati = c2i(x, y);
     switch (state) {
       case Turn(true, _):
@@ -343,8 +357,8 @@ class GridTile implements Entity {
     this.y = y;
     part = new P3DPart(this);
     part.vert = false;
-    part.x = x * Grid.TILE_DIM + Grid.TILE_MARGIN;
-    part.y = y * Grid.TILE_DIM + Grid.TILE_MARGIN;
+    part.x = grid.x + x * Grid.TILE_DIM + Grid.TILE_MARGIN;
+    part.y = grid.y + y * Grid.TILE_DIM + Grid.TILE_MARGIN;
     part.z = 1;
     part.data = Grid.tileData;
     part.w = part.h = Grid.TILE_DIM - Grid.TILE_MARGIN * 2;

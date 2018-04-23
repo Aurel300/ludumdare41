@@ -36,6 +36,7 @@ class P3DPart {
   public var tilt:Int = 0;
   public var showA:Bool = true;
   public var showB:Bool = true;
+  public var world:Bool = false;
   
   public function new(entity:Entity) {
     this.entity = entity;

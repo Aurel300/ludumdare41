@@ -9,7 +9,7 @@ class Sfx {
     Sfx.am = am;
   }
   
-  public static function play(s:String):Void {
-    am.getSound('snd-$s').play();
+  public static function play(s:String, ?forever:Bool = false) {
+    return am.getSound('snd-$s').play(forever ? Forever : Once);
   }
 }
