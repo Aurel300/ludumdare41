@@ -10,6 +10,7 @@ class Grid {
   public static var tileDataSelect:Vector<Int> = Vector.fromArrayCopy([-3]);
   public static var tileDataHover:Vector<Int> = Vector.fromArrayCopy([-5]);
   public static var tileDataMove:Vector<Int> = Vector.fromArrayCopy([11]);
+  public static var tileDataAttack:Vector<Int> = Vector.fromArrayCopy([8]);
   
   public var x:Int = 0;
   public var y:Int = 0;
@@ -50,6 +51,15 @@ class Grid {
     b.addLayer(Lettuce);
     b.addLayer(BunTop);
     units[2 + 2 * 5] = b;
+    
+    b = new Burger();
+    b.player = false;
+    b.grid = this;
+    b.gridX = 3;
+    b.gridY = 3;
+    b.addLayer(Lettuce);
+    b.addLayer(BunTop);
+    units[3 + 3 * 5] = b;
   }
   
   inline function c2i(x:Int, y:Int):Int return x + y * w;
@@ -76,17 +86,16 @@ class Grid {
       });
     var selVi = (switch [state, turn] {
         case [_, WaitFor(u)]: turn = (u.anim == None ? Idle : turn); -1;
-        case [Turn(true, t), Inspect(s) | Select(s)]:
-        c2i(s.gridX, s.gridY);
-        case _: -1;
+        case [Turn(true, t), Inspect(s) | Select(s)]: c2i(s.gridX, s.gridY);
+        case _: GUI.hide("stats"); -1;
       });
     var vi = 0;
     for (y in 0...h) for (x in 0...w) {
       renTiles[vi].data = renEnts[vi].mouse
         ? tileDataHover : (vi == selVi
           ? tileDataSelect : (renEnts[vi].move
-            ? tileDataMove
-            : tileData));
+            ? tileDataMove : (renEnts[vi].attack
+              ? tileDataAttack : tileData)));
       vi++;
     }
   }
@@ -94,6 +103,7 @@ class Grid {
   function clearMove():Void {
     for (vi in 0...renEnts.length) {
       renEnts[vi].move = false;
+      renEnts[vi].attack = false;
       renEnts[vi].moveFX = 0;
       renEnts[vi].moveFY = 0;
       renEnts[vi].moveDist = -1;
@@ -110,8 +120,16 @@ class Grid {
         var cur = queue.shift();
         if (!cur.x.withinI(0, w - 1) || !cur.y.withinI(0, h - 1)) continue;
         var i = c2i(cur.x, cur.y);
-        if (units[i] != null && units[i] != sel) continue;
         var cent = renEnts[i];
+        if (units[i] != null && units[i] != sel) {
+          if (units[i].player != sel.player) {
+            cent.attack = true;
+            cent.moveFX = cur.fx - cur.x;
+            cent.moveFY = cur.fy - cur.y;
+            cent.moveDist = cur.dist;
+          }
+          continue;
+        }
         // if (!cent.walkable) continue;
         if (cent.moveDist == -1 || cur.dist < cent.moveDist) {
           cent.move = true;
@@ -120,10 +138,14 @@ class Grid {
           cent.moveDist = cur.dist;
         }
         if (cur.dist < sel.stats.mp) {
-          queue.push({fx: cur.x, fy: cur.y, x: cur.x - 1, y: cur.y, dist: cur.dist + 1});
-          queue.push({fx: cur.x, fy: cur.y, x: cur.x + 1, y: cur.y, dist: cur.dist + 1});
-          queue.push({fx: cur.x, fy: cur.y, x: cur.x, y: cur.y - 1, dist: cur.dist + 1});
-          queue.push({fx: cur.x, fy: cur.y, x: cur.x, y: cur.y + 1, dist: cur.dist + 1});
+          for (off in [
+               {x: -1, y: 0}
+              ,{x: 1, y: 0}
+              ,{x: 0, y: -1}
+              ,{x: 0, y: 1}
+            ]) {
+            queue.push({fx: cur.x, fy: cur.y, x: cur.x + off.x, y: cur.y + off.y, dist: cur.dist + 1});
+          }
         }
       }
       case _: clearMove();
@@ -135,36 +157,52 @@ class Grid {
     var ati = c2i(x, y);
     switch (state) {
       case Turn(true, _):
+      var showStats = false;
       var atGrid = units[ati];
       turn = (switch (turn) {
           case Idle:
           if (atGrid != null) {
+            showStats = true;
             atGrid.player ? Select(atGrid) : Inspect(atGrid);
           } else Idle;
           case Inspect(_):
           if (atGrid != null) {
+            showStats = true;
             atGrid.player ? Select(atGrid) : Inspect(atGrid);
           } else Idle;
           case Select(sel):
           if (atGrid == sel) Idle;
-          else if (atGrid == null) {
-            if (renEnts[ati].move) {
-              var curi = ati;
-              var cur = renEnts[ati];
-              var canim:UnitAnimation = None;
-              while (cur.moveFX != 0 || cur.moveFY != 0) {
-                canim = Walk(-cur.moveFX, -cur.moveFY, 0, canim);
-                curi += c2i(cur.moveFX, cur.moveFY);
-                cur = renEnts[curi];
-                sel.stats.mp--;
-              }
-              sel.anim = canim;
-              WaitFor(sel);
-            } else Idle;
-          } else if (atGrid.player) Select(atGrid);
+          else if (renEnts[ati].move || renEnts[ati].attack) {
+            var curi = ati;
+            var cur = renEnts[ati];
+            var canim:UnitAnimation = None;
+            if (renEnts[ati].attack) {
+              canim = Func(() -> {
+                  units[ati].hit(sel.stats.ap);
+                  sel.stats.mp = 0;
+                }, None);
+            }
+            var first = true;
+            while (cur.moveFX != 0 || cur.moveFY != 0) {
+              canim = (renEnts[ati].attack && first
+                ? Attack(-cur.moveFX, -cur.moveFY, 0, canim)
+                : Walk(-cur.moveFX, -cur.moveFY, 0, canim));
+              curi += c2i(cur.moveFX, cur.moveFY);
+              cur = renEnts[curi];
+              sel.stats.mp--;
+              first = false;
+            }
+            sel.anim = canim;
+            WaitFor(sel);
+          } else if (atGrid.player) {
+            showStats = true;
+            Select(atGrid);
+          }
           else Idle;
           case _: turn;
         });
+      if (showStats) GUI.showStats(atGrid.stats);
+      else GUI.hide("stats");
       initTurn(turn);
       case _:
     }
@@ -178,6 +216,7 @@ class GridTile implements Entity {
   public var y:Int;
   public var mouse:Bool = false;
   public var move:Bool = false;
+  public var attack:Bool = false;
   public var moveFX:Int;
   public var moveFY:Int;
   public var moveDist:Int;

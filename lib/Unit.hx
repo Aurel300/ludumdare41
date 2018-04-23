@@ -6,6 +6,7 @@ import lib.P3DBuild.P3DSkeleton;
 
 class Unit {
   static var MOVE_TIME:Int = 30;
+  static var ATTACK_TIME:Int = 30;
   
   public static var as:Map<String, Bitmap>;
   public static var ss:Map<String, Array<P3DSkeleton>>;
@@ -50,6 +51,15 @@ class Unit {
           moveTo(gridX + ox, gridY + oy);
           n;
         }
+        case Attack(ox, oy, f, n):
+        subX = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * ox).floor();
+        subY = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * oy).floor();
+        if (f < ATTACK_TIME - 1) Attack(ox, oy, f + 1, n);
+        else {
+          subX = subY = 0;
+          n;
+        }
+        case Func(f, n): f(); n;
         case _: None;
       });
     for (l in layers) {
@@ -58,9 +68,20 @@ class Unit {
     }
   }
   
+  function remove():Void {
+    grid.units[gridX + gridY * grid.w] = null;
+  }
+  
+  public function hit(dmg:Int):Void {
+    stats.hp -= dmg;
+    if (stats.hp <= 0) {
+      remove();
+    }
+  }
+  
   public function moveTo(x:Int, y:Int):Void {
     subX = subY = 0;
-    grid.units[gridX + gridY * grid.w] = null;
+    remove();
     gridX = x;
     gridY = y;
     grid.units[gridX + gridY * grid.w] = this;

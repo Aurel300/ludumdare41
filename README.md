@@ -18,8 +18,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 ## Current focus ##
 
  - tbs
-   - attacks
-     - animations
    - enemies
      - ai - enumerate options, sort, choose one of the first options
 
@@ -60,8 +58,9 @@ in order of importance
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right
  - VIS turn units when moving
+ - VIS death animation
  - PERF cull back faces
- - VIS show path in TBS 
+ - VIS show path in TBS
  - VIS shadows
 
 ## Music list ##
