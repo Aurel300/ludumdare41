@@ -1,9 +1,12 @@
 package lib;
 
+import sk.thenet.anim.*;
 import sk.thenet.bmp.manip.*;
 import lib.P3DBuild.P3DSkeleton;
 
 class Unit {
+  static var MOVE_TIME:Int = 30;
+  
   public static var as:Map<String, Bitmap>;
   public static var ss:Map<String, Array<P3DSkeleton>>;
   
@@ -25,6 +28,8 @@ class Unit {
   public var grid:Grid;
   public var gridX:Int = 0;
   public var gridY:Int = 0;
+  public var subX:Int = 0;
+  public var subY:Int = 0;
   public var anim:UnitAnimation = None;
   
   public var stats:UnitStats;
@@ -36,21 +41,28 @@ class Unit {
   }
   
   public function update():Void {
+    anim = (switch (anim) {
+        case Walk(ox, oy, f, n):
+        subX = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * ox).floor();
+        subY = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * oy).floor();
+        if (f < MOVE_TIME - 1) Walk(ox, oy, f + 1, n);
+        else {
+          moveTo(gridX + ox, gridY + oy);
+          n;
+        }
+        case _: None;
+      });
     for (l in layers) {
-      l.x = gridX * Grid.TILE_DIM + Grid.TILE_HALF;
-      l.y = gridY * Grid.TILE_DIM + Grid.TILE_HALF;
+      l.x = gridX * Grid.TILE_DIM + Grid.TILE_HALF + subX;
+      l.y = gridY * Grid.TILE_DIM + Grid.TILE_HALF + subY;
     }
   }
   
   public function moveTo(x:Int, y:Int):Void {
+    subX = subY = 0;
     grid.units[gridX + gridY * grid.w] = null;
     gridX = x;
     gridY = y;
     grid.units[gridX + gridY * grid.w] = this;
   }
-}
-
-enum UnitAnimation {
-  None;
-  Idle(v:Int, t:Int);
 }
