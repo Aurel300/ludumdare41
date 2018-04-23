@@ -68,13 +68,75 @@ class Grid {
     for (vi in 0...units.length) {
       if (units[vi] == null) continue;
       if (units[vi].player != player) continue;
+      units[vi].aiMoved = false;
       units[vi].stats.mp = units[vi].stats.mpMax;
     }
+  }
+  
+  function ai(u:Unit, allies:Array<Unit>, enemies:Array<Unit>):AIOutcome {
+    var space = bfs(u);
+    if (enemies.length == 0 || space.length == 0) return space[0];
+    var hpf = u.stats.hp / u.stats.hpMax;
+    for (s in space) {
+      var damage = 0.0;
+      if (s.attack) {
+        var tgt = units[s.ati];
+        damage += u.stats.ap;
+        if (u.stats.ap < tgt.stats.hp) {
+          damage -= tgt.stats.ap * .3;
+        }
+      }
+      var closest = null;
+      var closestDist = 0;
+      for (e in enemies) {
+        var dist = (e.gridX - u.gridX).absI() + (e.gridY - u.gridY).absI();
+        if (closest == null || dist < closestDist) {
+          closest = e;
+          closestDist = dist;
+        }
+      }
+      var proxMod = 1 / (hpf * u.stats.ap * closestDist);
+      closest = null;
+      closestDist = 0;
+      for (e in allies) {
+        var dist = (e.gridX - u.gridX).absI() + (e.gridY - u.gridY).absI();
+        if (closest == null || dist < closestDist) {
+          closest = e;
+          closestDist = dist;
+        }
+      }
+      var distMod = (1 - hpf) * closestDist;
+      s.score = damage + proxMod + distMod;
+    }
+    space.sort((a, b) -> a.score < b.score ? 1 : -1);
+    var i = 0;
+    while (i < space.length - 1 && FM.prng.nextMod(3) == 0) i++;
+    u.aiMoved = true;
+    return space[i];
   }
   
   public function update():Void {
     state = (switch [state, turn] {
         case [_, WaitFor(u)]: turn = (u.anim == None ? initTurn(Idle) : turn); state;
+        case [Turn(false, _), _]:
+        var them = [];
+        var us = [ for (u in units) {
+            if (u == null) continue; 
+            if (u.player) { them.push(u); continue; }
+            if (u.aiMoved) continue;
+            u;
+          } ];
+        if (us.length == 0) {
+          initTurn(Idle);
+          clearUnits(true);
+          Turn(true, TURN_TIME);
+        } else {
+          var tu = FM.prng.nextElement(us);
+          us.remove(tu);
+          act(tu, ai(tu, us, them).ati);
+          turn = WaitFor(tu);
+          Turn(false, 1);
+        }
         case [Turn(p, t), _]:
         if (t > 0) Turn(p, t - 1);
         else {
@@ -110,44 +172,83 @@ class Grid {
     }
   }
   
-  function initTurn(turn:TurnState):TurnState {
-    this.turn = turn;
-    switch (turn) {
-      case Select(sel):
-      clearMove();
-      var queue = [{fx: sel.gridX, fy: sel.gridY, x: sel.gridX, y: sel.gridY, dist: 0}];
-      while (queue.length > 0) {
-        var cur = queue.shift();
-        if (!cur.x.withinI(0, w - 1) || !cur.y.withinI(0, h - 1)) continue;
-        var i = c2i(cur.x, cur.y);
-        var cent = renEnts[i];
-        if (units[i] != null && units[i] != sel) {
-          if (units[i].player != sel.player) {
-            cent.attack = true;
-            cent.moveFX = cur.fx - cur.x;
-            cent.moveFY = cur.fy - cur.y;
-            cent.moveDist = cur.dist;
-          }
-          continue;
-        }
-        // if (!cent.walkable) continue;
-        if (cent.moveDist == -1 || cur.dist < cent.moveDist) {
-          cent.move = true;
+  function bfs(sel:Unit):Array<AIOutcome> {
+    var ret:Array<AIOutcome> = [];
+    clearMove();
+    var queue = [{fx: sel.gridX, fy: sel.gridY, x: sel.gridX, y: sel.gridY, dist: 0}];
+    while (queue.length > 0) {
+      var cur = queue.shift();
+      if (!cur.x.withinI(0, w - 1) || !cur.y.withinI(0, h - 1)) continue;
+      var i = c2i(cur.x, cur.y);
+      var cent = renEnts[i];
+      if (units[i] != null && units[i] != sel) {
+        if (units[i].player != sel.player) {
+          ret.push({
+               score: 0
+              ,ati: i
+              ,attack: true
+            });
+          cent.attack = true;
           cent.moveFX = cur.fx - cur.x;
           cent.moveFY = cur.fy - cur.y;
           cent.moveDist = cur.dist;
         }
-        if (cur.dist < sel.stats.mp) {
-          for (off in [
-               {x: -1, y: 0}
-              ,{x: 1, y: 0}
-              ,{x: 0, y: -1}
-              ,{x: 0, y: 1}
-            ]) {
-            queue.push({fx: cur.x, fy: cur.y, x: cur.x + off.x, y: cur.y + off.y, dist: cur.dist + 1});
-          }
+        continue;
+      }
+      // if (!cent.walkable) continue;
+      if (cent.moveDist == -1 || cur.dist < cent.moveDist) {
+        ret.push({
+             score: 0
+            ,ati: i
+            ,attack: false
+          });
+        cent.move = true;
+        cent.moveFX = cur.fx - cur.x;
+        cent.moveFY = cur.fy - cur.y;
+        cent.moveDist = cur.dist;
+      }
+      if (cur.dist < sel.stats.mp) {
+        for (off in [
+             {x: -1, y: 0}
+            ,{x: 1, y: 0}
+            ,{x: 0, y: -1}
+            ,{x: 0, y: 1}
+          ]) {
+          queue.push({fx: cur.x, fy: cur.y, x: cur.x + off.x, y: cur.y + off.y, dist: cur.dist + 1});
         }
       }
+    }
+    return ret;
+  }
+  
+  function act(sel:Unit, ati:Int):Void {
+    if (ati == c2i(sel.gridX, sel.gridY)) return;
+    var curi = ati;
+    var cur = renEnts[ati];
+    var canim:UnitAnimation = None;
+    if (renEnts[ati].attack) {
+      canim = Func(() -> {
+          units[ati].hit(sel.stats.ap);
+          sel.stats.mp = 0;
+        }, None);
+    }
+    var first = true;
+    while (cur.moveFX != 0 || cur.moveFY != 0) {
+      canim = (renEnts[ati].attack && first
+        ? Attack(-cur.moveFX, -cur.moveFY, 0, canim)
+        : Walk(-cur.moveFX, -cur.moveFY, 0, canim));
+      curi += c2i(cur.moveFX, cur.moveFY);
+      cur = renEnts[curi];
+      sel.stats.mp--;
+      first = false;
+    }
+    sel.anim = canim;
+  }
+  
+  function initTurn(turn:TurnState):TurnState {
+    this.turn = turn;
+    switch (turn) {
+      case Select(sel): bfs(sel);
       case _: clearMove();
     }
     return turn;
@@ -173,28 +274,10 @@ class Grid {
           case Select(sel):
           if (atGrid == sel) Idle;
           else if (renEnts[ati].move || renEnts[ati].attack) {
-            var curi = ati;
-            var cur = renEnts[ati];
-            var canim:UnitAnimation = None;
-            if (renEnts[ati].attack) {
-              canim = Func(() -> {
-                  units[ati].hit(sel.stats.ap);
-                  sel.stats.mp = 0;
-                }, None);
-            }
-            var first = true;
-            while (cur.moveFX != 0 || cur.moveFY != 0) {
-              canim = (renEnts[ati].attack && first
-                ? Attack(-cur.moveFX, -cur.moveFY, 0, canim)
-                : Walk(-cur.moveFX, -cur.moveFY, 0, canim));
-              curi += c2i(cur.moveFX, cur.moveFY);
-              cur = renEnts[curi];
-              sel.stats.mp--;
-              first = false;
-            }
-            sel.anim = canim;
+            act(sel, ati);
             WaitFor(sel);
-          } else if (atGrid.player) {
+          } else if (atGrid == null) Idle;
+          else if (atGrid.player) {
             showStats = true;
             Select(atGrid);
           }
@@ -252,3 +335,9 @@ enum TurnState {
   Select(u:Unit);
   WaitFor(u:Unit);
 }
+
+typedef AIOutcome = {
+     score:Float
+    ,ati:Int
+    ,attack:Bool
+  };

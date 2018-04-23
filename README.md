@@ -17,9 +17,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - tbs
-   - enemies
-     - ai - enumerate options, sort, choose one of the first options
+ - ?
 
 ## TODO ##
 
@@ -55,6 +53,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 in order of importance
 
+ - GPLY change stats with recipes
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right
  - VIS turn units when moving

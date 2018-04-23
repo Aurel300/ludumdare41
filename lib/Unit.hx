@@ -32,6 +32,7 @@ class Unit {
   public var subX:Int = 0;
   public var subY:Int = 0;
   public var anim:UnitAnimation = None;
+  public var aiMoved:Bool = false;
   
   public var stats:UnitStats;
   
