@@ -7,4 +7,6 @@ enum Ingredient {
   Cucumber;
   Lettuce;
   Cheese;
+  Sauce;
+  Pepsalt;
 }

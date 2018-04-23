@@ -8,6 +8,8 @@ enum BurgerLayer {
   Patty(cook:Int);
   Lettuce;
   Cheese;
+  Sauce;
+  Pepsalt;
   BunBottom;
   
   Scored(l:BurgerLayer, r:UnitRank);

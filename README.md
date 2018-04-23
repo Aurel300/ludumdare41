@@ -26,8 +26,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - recipes + stats
-   - modify burger rank
  - enemies
    - scorpion
    - alien ufo
@@ -43,7 +41,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
  - graphics
    - particle effecs
    - [.] time progression via palette shifts
-   - cooking
    - tbs
      - enemy units
    - gui
@@ -57,10 +54,9 @@ in order of importance
 
  - GPLY / VIS stars + sound with good rank
  - GPLY show timer warning when in TBS mode
- - GPLY change stats with recipes
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right
- - VIS turn units when moving
+ - GPLY shift baseline according to skill
  - VIS death animation
  - PERF cull back faces
  - VIS show path in TBS

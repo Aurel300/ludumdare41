@@ -10,6 +10,7 @@ class GUI {
   public static var dropArrow:Array<Bitmap>;
   public static var turnBit:Array<Bitmap>;
   public static var banners:Map<UnitRank, Bitmap>;
+  public static var traits:Map<UnitTrait, Bitmap>;
   
   public static var panels:Map<String, GUI>;
   
@@ -33,6 +34,13 @@ class GUI {
         ,RankB => Text.banner(Platform.createBitmap(40, 32, 0), "B")
         ,RankD => Text.banner(Platform.createBitmap(40, 32, 0), "D")
         ,RankF => Text.banner(Platform.createBitmap(40, 32, 0), "F")
+      ];
+    var i = 0;
+    traits = [
+         Healer => b >> new Cut(i++ * 17, 240, 17, 17)
+        ,Smell => b >> new Cut(i++ * 17, 240, 17, 17)
+        ,Poison => b >> new Cut(i++ * 17, 240, 17, 17)
+        ,Toxic => b >> new Cut(i++ * 17, 240, 17, 17)
       ];
     dropArrow = [ for (i in 0...Trig.densityAngle)
       as["dropArrow"].fluent
@@ -91,6 +99,11 @@ class GUI {
     if (s.rank != null) {
       Text.render(b, 82, 21 + 18, "Rank");
       b.blitAlpha(banners[s.rank], 80, 45);
+    }
+    var curx = 120 - 5 - 17;
+    for (t in s.traits) {
+      b.blitAlpha(traits[t], curx, 3);
+      curx -= 18;
     }
     show("stats");
   }

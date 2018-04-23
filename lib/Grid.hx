@@ -39,7 +39,6 @@ class Grid {
     }
     
     var b = new Burger();
-    b.player = true;
     b.grid = this;
     b.gridX = 2;
     b.gridY = 2;
@@ -52,14 +51,11 @@ class Grid {
     b.addLayer(BunTop);
     units[2 + 2 * 5] = b;
     
-    b = new Burger();
-    b.player = false;
-    b.grid = this;
-    b.gridX = 3;
-    b.gridY = 3;
-    b.addLayer(Lettuce);
-    b.addLayer(BunTop);
-    units[3 + 3 * 5] = b;
+    var s = new Scorpion();
+    s.grid = this;
+    s.gridX = 3;
+    s.gridY = 3;
+    units[3 + 3 * 5] = s;
   }
   
   inline function c2i(x:Int, y:Int):Int return x + y * w;
@@ -74,6 +70,7 @@ class Grid {
   }
   
   function ai(u:Unit, allies:Array<Unit>, enemies:Array<Unit>):AIOutcome {
+    u.aiMoved = true;
     var space = bfs(u);
     if (enemies.length == 0 || space.length == 0) return space[0];
     var hpf = u.stats.hp / u.stats.hpMax;
@@ -111,7 +108,6 @@ class Grid {
     space.sort((a, b) -> a.score < b.score ? 1 : -1);
     var i = 0;
     while (i < space.length - 1 && FM.prng.nextMod(3) == 0) i++;
-    u.aiMoved = true;
     return space[i];
   }
   

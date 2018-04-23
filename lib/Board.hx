@@ -66,9 +66,11 @@ class Board {
         case Patty(cook): "Burger patty";
         case Lettuce: "Lettuce slice";
         case Cheese: "Cheese slice";
+        case Sauce: "Special sauce";
+        case Pepsalt: "Pepsalt";
         case _: "";
       }, rank);
-    return Scored(l, rank != null ? rank : RankS);
+    return rank != null ? Scored(l, rank) : l;
   }
   
   public static function init(b:Bitmap):Void {
@@ -113,6 +115,8 @@ class Board {
         ,Cucumber => f >> new Cut(400 + i++ * 32, 8, 32, 34)
         ,Lettuce => f >> new Cut(400 + i++ * 32, 8, 32, 34)
         ,Cheese => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Sauce => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Pepsalt => f >> new Cut(400 + i++ * 32, 8, 32, 34)
       ];
   }
   
@@ -122,54 +126,87 @@ class Board {
   static var pattyPosX = [34, 174, 34, 174];
   static var pattyPosY = [50, 50, 134, 134];
   
-  public var task:BoardTask = None;
-  public var obj:Bitmap = null;
-  public var objX:Float = 0;
-  public var objY:Float = Main.H;
-  public var objW:Int = 0;
-  public var objTX:Float = 0;
-  public var objTY:Float = Main.H;
-  public var knife:Bitmap =  null;
-  public var knifeX:Float = Main.W + 10;
-  public var knifeY:Float = Main.H;
-  public var knifeTX:Float = Main.W + 10;
-  public var knifeTY:Float = Main.H;
-  public var knifeDip:Int = 0;
-  public var bpieces = new Array<Piece>();
-  public var pieces = new List<Piece>();
-  public var timer:Int = 0;
-  public var space:Int = 0;
-  public var spaceX:Float = 0;
-  public var spaceTX:Float = 0;
-  public var inventory:Array<Ingredient> = [Carrot, Tomato, Patty, Cucumber, Lettuce, Cheese, null, null];
-  public var inventoryHover:Int = -1;
-  public var slotHover:Int = -1;
-  public var slotSelect:Int = -1;
-  public var pattyHover:Int = -1;
-  public var grill:Array<PattyGrill>;
+  var inventory:Array<Ingredient> = [Carrot, Tomato, Patty, Cucumber, Lettuce, Cheese, Sauce, Pepsalt];
   var plots:Array<Plot>;
-  var slots:Array<Burger>;
   var p3d:P3D;
+  
+  var task:BoardTask;
+  var obj:Bitmap;
+  var objX:Float;
+  var objY:Float;
+  var objW:Int;
+  var objTX:Float;
+  var objTY:Float;
+  var knife:Bitmap;
+  var knifeX:Float;
+  var knifeY:Float;
+  var knifeTX:Float;
+  var knifeTY:Float;
+  var knifeDip:Int;
+  var bpieces:Array<Piece>;
+  var pieces:List<Piece>;
+  var timer:Int;
+  var space:Int;
+  var spaceX:Float;
+  var spaceTX:Float;
+  var inventoryHover:Int;
+  var slotHover:Int;
+  var slotSelect:Int;
+  var pattyHover:Int;
+  var grill:Array<PattyGrill>;
+  var slots:Array<Burger>;
   var dropLayer:P3DBuild;
-  var score:Int = 0;
+  var score:Int;
   
   public function new() {
     plots = [ for (i in 0...3) new Plot(106, 126) ];
-    slots = [ for (i in 0...3) new Burger() ];
-    grill = [ for (i in 0...4) None ];
-    
     p3d = new P3D();
     p3d.zoom = 3;
     p3d.camAngle = 3;
     p3d.offY = 90;
     
     GUI.panels["trash"].action = function () {
-      slots[slotSelect] = new Burger();
+      switch (task) {
+        case Stats(_): slots[slotSelect] = new Burger();
+        case _:
+      }
       deinit();
     };
     GUI.panels["timer"].action = function () {
       timer = TASK_LENGTH - 1;
     };
+    
+    reset();
+  }
+  
+  public function reset():Void {
+    task = None;
+    obj = null;
+    objX = 0;
+    objY = Main.H;
+    objW = 0;
+    objTX = 0;
+    objTY = Main.H;
+    knife =  null;
+    knifeX = Main.W + 10;
+    knifeY = Main.H;
+    knifeTX = Main.W + 10;
+    knifeTY = Main.H;
+    knifeDip = 0;
+    bpieces = new Array<Piece>();
+    pieces = new List<Piece>();
+    timer = 0;
+    space = 0;
+    spaceX = 0;
+    spaceTX = 0;
+    inventoryHover = -1;
+    slotHover = -1;
+    slotSelect = -1;
+    pattyHover = -1;
+    grill = [ for (i in 0...4) None ];
+    slots = [ for (i in 0...3) new Burger() ];
+    dropLayer = null;
+    score = 0;
   }
   
   public function initTask(task:BoardTask):BoardTask {
@@ -239,6 +276,9 @@ class Board {
         GUI.show("trash");
         GUI.show("drop");
         task;
+        case Put(l):
+        dropLayer = slots[slotSelect].addLayer(l);
+        deinit(); initTask(None);
         case SelectBurger(_) | SelectGrill(_):
         GUI.show("trash");
         task;
@@ -273,8 +313,11 @@ class Board {
       GUI.hide("stats");
       GUI.hide("deploy");
       case Drop(_):
+      slots[slotSelect].restat();
       dropLayer.z -= 10;
       GUI.hide("drop");
+      case Put(_):
+      slots[slotSelect].restat();
       case _:
     }
     task = None;
@@ -468,6 +511,8 @@ class Board {
           case Patty: Tenderise;
           case Lettuce: SelectBurger(Drop(rankScoreShow(Lettuce)));
           case Cheese: SelectBurger(Drop(rankScoreShow(Cheese)));
+          case Sauce: SelectBurger(Put(rankScoreShow(Sauce)));
+          case Pepsalt: SelectBurger(Put(rankScoreShow(Pepsalt)));
         });
       inventoryHover = -1;
       return true;
@@ -568,6 +613,7 @@ enum BoardTask {
   SelectBurger(t:BoardTask);
   SelectGrill(p:Int);
   Drop(i:BurgerLayer);
+  Put(i:BurgerLayer);
 }
 
 typedef Piece = {
