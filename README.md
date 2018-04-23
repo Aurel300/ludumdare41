@@ -30,15 +30,11 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - gameplay
    - open world
-   - cooking
-     - stats
    - tbs
      - traits
  - graphics
    - particle effecs
    - [.] time progression via palette shifts
-   - tbs
-     - enemy units
    - gui
  - audio
    - sfx
@@ -48,7 +44,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 in order of importance
 
- - GPLY / VIS stars + sound with good rank
  - GPLY show timer warning when in TBS mode
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right

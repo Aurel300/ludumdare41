@@ -20,6 +20,10 @@ class Burger extends Unit {
         ]
     ];
   
+  public static inline function angleQuality(a:Int):Int {
+    return (a % 9).minI((Trig.densityAngle - a) % 9);
+  }
+  
   public var lastZ:Int = 0;
   public var recipe:Array<BurgerLayer> = [];
   public var recipeRanks:Array<UnitRank> = [];
@@ -117,9 +121,7 @@ class Burger extends Unit {
     var total = 0;
     for (r in recipeRanks) total += r;
     var align = 0;
-    for (a in 1...layers.length) {
-      align += (layers[a].angle % 9).minI((Trig.densityAngle - layers[a].angle) % 9);
-    }
+    for (a in 1...layerAngles.length) align += angleQuality(layerAngles[a]);
     stats.rank = ((total >> 1) + (align / 6).floor()).minI(UnitRank.RankF);
     var maxStat = (switch (stats.rank) {
         case RankS: 7;
@@ -167,6 +169,7 @@ class Burger extends Unit {
     if (rank != -1) recipeRanks.push(rank);
     restat();
     if (map != null) for (p in layer.parts) p.remap(map);
+    layerAngles.push(layer.angle);
     layers.push(layer);
     lastZ += off;
     return layer;

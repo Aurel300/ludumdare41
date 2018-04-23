@@ -313,6 +313,11 @@ class Board {
       GUI.hide("stats");
       GUI.hide("deploy");
       case Drop(_):
+      var qual = Burger.angleQuality(timer);
+      var qq = 0;
+      if (qual == 0) qq = 15;
+      else if (qual == 1) qq = 7;
+      if (qq != 0) stars(platePosX[slotSelect] + 53 - Main.W, platePosY[slotSelect] + 40, qq);
       slots[slotSelect].restat();
       dropLayer.z -= 10;
       GUI.hide("drop");
@@ -325,7 +330,6 @@ class Board {
   }
   
   public function render(to:Bitmap, y:Int, mx:Int, my:Int):Void {
-    
     // render logic
     switch (task) {
       case None:
@@ -355,7 +359,8 @@ class Board {
       knifeTY = 50;
       case Drop(_):
       timer %= Trig.densityAngle;
-      dropLayer.angle = timer;
+      var ls = slots[slotSelect].layerAngles.length;
+      slots[slotSelect].layerAngles[ls - 1] = timer;
       GUI.panels["drop"].bs[1] = GUI.dropArrow[timer];
       case _:
     }
@@ -489,6 +494,22 @@ class Board {
     timer++;
   }
   
+  function stars(x:Float, y:Float, n:Int):Void {
+    for (i in 0...n + FM.prng.nextMod(5)) {
+      pieces.push({
+           b: GUI.stars[FM.prng.nextMod(6)]
+          ,bx: 0
+          ,by: 0
+          ,bw: 12
+          ,bh: 12
+          ,x: x - 2 + FM.prng.nextFloat(4)
+          ,y: y - 2 + FM.prng.nextFloat(4)
+          ,vx: -1 + FM.prng.nextFloat(2)
+          ,vy: -0.5 - FM.prng.nextFloat(2.1)
+        });
+    }
+  }
+  
   public function click(mx, my):Bool {
     if (slotHover != -1) {
       switch (task) {
@@ -553,9 +574,6 @@ class Board {
             bestFit = i;
           }
         }
-        if (bestFit != -1 && bestDist < 50) {
-          marks.splice(bestFit, 1);
-        }
         score += 50 - bestDist;
         pieces.push({
              b: obj
@@ -568,6 +586,10 @@ class Board {
             ,vx: .3 + Math.random() * 1.4
             ,vy: -1.3 - Math.random() * .9
           });
+        if (bestFit != -1 && bestDist < 50) {
+          stars(objX + objW, objY + 30, (50 - bestDist) >> 2);
+          marks.splice(bestFit, 1);
+        }
       }
       case Tenderise:
       score++;

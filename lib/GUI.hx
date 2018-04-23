@@ -11,6 +11,7 @@ class GUI {
   public static var turnBit:Array<Bitmap>;
   public static var banners:Map<UnitRank, Bitmap>;
   public static var traits:Map<UnitTrait, Bitmap>;
+  public static var stars:Array<Bitmap>;
   
   public static var panels:Map<String, GUI>;
   
@@ -35,6 +36,7 @@ class GUI {
         ,RankD => Text.banner(Platform.createBitmap(40, 32, 0), "D")
         ,RankF => Text.banner(Platform.createBitmap(40, 32, 0), "F")
       ];
+    stars = [ for (y in 0...2) for (x in 0...3) b >> new Cut(112 + x * 16, 8 + y * 16, 12, 12) ];
     var i = 0;
     traits = [
          Healer => b >> new Cut(i++ * 17, 240, 17, 17)

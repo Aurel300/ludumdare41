@@ -61,6 +61,7 @@ class Enemy extends Unit {
           ,null
         )];
     }
+    layerAngles = [ for (l in layers) l.angle ];
   }
   
   var timer:Int = 0;

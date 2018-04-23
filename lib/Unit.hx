@@ -61,6 +61,7 @@ class Unit {
   public var stats:UnitStats;
   
   public var layers:Array<P3DBuild> = [];
+  public var layerAngles:Array<Int> = [];
   
   public function new() {
     
@@ -89,8 +90,9 @@ class Unit {
         case Func(f, n): f(); n;
         case _: None;
       });
-    for (l in layers) {
-      l.angle = angle;
+    for (li in 0...layers.length) {
+      var l = layers[li];
+      l.angle = layerAngles[li] + angle;
       l.x = gridX * Grid.TILE_DIM + Grid.TILE_HALF + subX;
       l.y = gridY * Grid.TILE_DIM + Grid.TILE_HALF + subY;
     }
