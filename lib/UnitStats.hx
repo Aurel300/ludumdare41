@@ -7,11 +7,3 @@ typedef UnitStats = {
     ,mp:Int, mpMax:Int
     ,rank:Null<UnitRank>
   };
-
-enum UnitRank {
-  RankS;
-  RankA;
-  RankB;
-  RankD;
-  RankF;
-}

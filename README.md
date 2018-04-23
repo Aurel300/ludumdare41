@@ -15,10 +15,19 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ---
 
+## Baseline game scores ##
+
+(for B rank)
+
+ - carrot: 140
+ - cucumber: 240
+ - tomato: 80
+ - tenderise: 50
+
 ## Current focus ##
 
  - recipes + stats
-   - minigame rating
+   - modify burger rank
  - enemies
    - scorpion
    - alien ufo
@@ -27,36 +36,27 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - gameplay
    - open world
-     - driving
-     - encounters
-     - locations
-     - arcs
    - cooking
-     - [.] methods
-     - [.] ingredients
-     - timers
      - stats
    - tbs
      - units
-   - overall stats, progression
  - graphics
    - particle effecs
    - [.] time progression via palette shifts
    - cooking
-     - [.] cookware
-     - [.] ingredients
    - tbs
-     - units
+     - enemy units
    - gui
  - audio
    - sfx
-   - voice acting?
    - music
 
 ## Bucket ##
 
 in order of importance
 
+ - GPLY / VIS stars + sound with good rank
+ - GPLY show timer warning when in TBS mode
  - GPLY change stats with recipes
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right

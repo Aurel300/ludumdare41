@@ -9,4 +9,6 @@ enum BurgerLayer {
   Lettuce;
   Cheese;
   BunBottom;
+  
+  Scored(l:BurgerLayer, r:UnitRank);
 }

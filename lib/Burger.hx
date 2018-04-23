@@ -43,19 +43,24 @@ class Burger extends Unit {
           case _: "Mutt burger";
         });
     }
+    var score = 0;
     var off = 0;
+    function parseLayer(t:BurgerLayer) {
+      return (switch (t) {
+          case BunTop: off = 6; Unit.ss["bunTop"];
+          case Tomato: off = 2; Unit.ss["tomato"];
+          case Carrot: off = 2; Unit.ss["carrot"];
+          case Cucumber: off = 2; Unit.ss["cucumber"];
+          case Patty(cook): map = pattyMap[cook]; off = 4; Unit.ss["patty"];
+          case Lettuce: off = 1; Unit.ss["lettuce"];
+          case Cheese: off = 1; Unit.ss["cheese"];
+          case BunBottom: off = 5; Unit.ss["bunBottom"];
+          case Scored(l, s): score = s; parseLayer(l);
+        });
+    }
     var layer = P3DBuild.build(
         Anchor("")
-        ,[Offset(switch (t) {
-            case BunTop: off = 6; Unit.ss["bunTop"];
-            case Tomato: off = 2; Unit.ss["tomato"];
-            case Carrot: off = 2; Unit.ss["carrot"];
-            case Cucumber: off = 2; Unit.ss["cucumber"];
-            case Patty(cook): map = pattyMap[cook]; off = 4; Unit.ss["patty"];
-            case Lettuce: off = 1; Unit.ss["lettuce"];
-            case Cheese: off = 1; Unit.ss["cheese"];
-            case BunBottom: off = 5; Unit.ss["bunBottom"];
-          }, 0, 0, lastZ, 0)]
+        ,[Offset(parseLayer(t), 0, 0, lastZ, 0)]
         ,null
       );
     if (map != null) for (p in layer.parts) p.remap(map);

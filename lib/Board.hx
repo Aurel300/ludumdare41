@@ -7,6 +7,11 @@ class Board {
   static var as:Map<String, Bitmap>;
   static var ingr:Map<Ingredient, Bitmap>;
   
+  static inline var BASE_CARROT = 140;
+  static inline var BASE_CUCUMBER = 240;
+  static inline var BASE_TOMATO = 80;
+  static inline var BASE_TENDERISE = 50;
+  
   static inline var TASK_LENGTH = 640;
   
   static var timerFrames:Vector<Int> = {
@@ -28,13 +33,42 @@ class Board {
       (t < 23 * 60 ? 2 : 3)));
   }
   
-  public static inline function combinedPattyState(ten:Int, f:Int, t:Int):BurgerLayer {
+  static function rankScore(score:Int, baseline:Int):UnitRank {
+    return (score < .25 * baseline ? RankF :
+      (score < .75 * baseline ? RankD :
+      (score < 1.25 * baseline ? RankB :
+      (score < 1.75 * baseline ? RankA : RankS))));
+  }
+  
+  public static inline function rankPatty(ten:Int, f:Int, t:Int):BurgerLayer {
+    var r = rankScore(ten, BASE_TENDERISE);
     var a = pattyState(f);
     var b = pattyState(t);
-    return Patty(a == 3 || b == 3 ? 3
-      : (a == 0 || b == 0 ? 0
-      : (a == 1 || b == 1 ? 1
-      : 2)));
+    var maxRank:UnitRank = RankS;
+    var pattyName = "Crisp patty";
+    var resPatty = (switch [a, b] {
+        case [3, _] | [_, 3]: pattyName = "Burnt patty"; maxRank = RankD; 3;
+        case [0, _] | [_, 0]: pattyName = "Raw patty"; maxRank = RankD; 0;
+        case [1, _] | [_, 1]: pattyName = "Undercooked patty"; maxRank = RankA; 1;
+        case _: 2;
+      });
+    if ((r:Int) < (maxRank:Int)) r = maxRank;
+    GUI.showDropInfo(pattyName, r);
+    return Scored(Patty(resPatty), r);
+  }
+  
+  public static function rankScoreShow(l:BurgerLayer, ?score:Int = -1, ?baseline:Int = -1):BurgerLayer {
+    var rank = score >= 0 ? rankScore(score, baseline) : null;
+    GUI.showDropInfo(switch (l) {
+        case Tomato: "Tomato slice";
+        case Carrot: "Carrot slices";
+        case Cucumber: "Cucumber slices";
+        case Patty(cook): "Burger patty";
+        case Lettuce: "Lettuce slice";
+        case Cheese: "Cheese slice";
+        case _: "";
+      }, rank);
+    return Scored(l, rank != null ? rank : RankS);
   }
   
   public static function init(b:Bitmap):Void {
@@ -66,7 +100,6 @@ class Board {
       var vec = as["patty_grill" + i].getVector();
       for (vi in 0...vec.length) {
         var q = Colour.quantise(vec[vi], Pal.reg);
-        if (!pattyMap.exists(q)) trace(vec[vi], q);
         vec[vi] = Pal.reg[pattyMap[q][i]];
       }
       as["patty_grill" + i].setVector(vec);
@@ -134,6 +167,9 @@ class Board {
       slots[slotSelect] = new Burger();
       deinit();
     };
+    GUI.panels["timer"].action = function () {
+      timer = TASK_LENGTH - 1;
+    };
   }
   
   public function initTask(task:BoardTask):BoardTask {
@@ -169,7 +205,7 @@ class Board {
         knifeTX = 100;
         knifeTY = 60;
         knife = GUI.as["turn"];
-        CutTomato;
+        task;
         case Tenderise:
         GUI.show("timer");
         score = 0;
@@ -190,24 +226,27 @@ class Board {
             ,vx: 0
             ,vy: 0
           } ];
-        Tenderise;
+        task;
         case Stats(b):
         GUI.showStats(b.stats);
         if (b.layers.length > 1) GUI.show("trash");
         if (b.layers.length > 1) GUI.show("deploy");
-        Stats(b);
+        task;
         case Drop(l):
         dropLayer = slots[slotSelect].addLayer(l);
         dropLayer.z += 10;
         GUI.panels["drop"].bs[1] = GUI.dropArrow[0];
+        GUI.show("trash");
         GUI.show("drop");
-        Drop(l);
+        task;
+        case SelectBurger(_) | SelectGrill(_):
+        GUI.show("trash");
+        task;
         case _: task;
       });
   }
   
   public function start(task:BoardTask) {
-    deinit();
     bpieces = null;
     space = (switch (task) {
         case SelectBurger(_): 0;
@@ -219,6 +258,8 @@ class Board {
   }
   
   function deinit():Void {
+    GUI.hide("dropInfo");
+    GUI.hide("trash");
     switch (task) {
       case CutCarrot(_) | CutCucumber(_) | CutTomato | Tenderise:
       GUI.hide("timer");
@@ -230,9 +271,9 @@ class Board {
       knifeTY = Main.H + 10;
       case Stats(_):
       GUI.hide("stats");
-      GUI.hide("trash");
       GUI.hide("deploy");
       case Drop(_):
+      dropLayer.z -= 10;
       GUI.hide("drop");
       case _:
     }
@@ -241,7 +282,6 @@ class Board {
   }
   
   public function render(to:Bitmap, y:Int, mx:Int, my:Int):Void {
-    if (y >= Main.H) return;
     
     // render logic
     switch (task) {
@@ -278,96 +318,96 @@ class Board {
     }
     GUI.panels["timer"].bs[0] = GUI.as["timer" + timerFrames[timer % TASK_LENGTH]];
     
-    // render
-    to.blitAlpha(as["interiour"], -spaceX.floor(), y);
+    if (y < Main.H) {
+      // render
+      to.blitAlpha(as["interiour"], -spaceX.floor(), y);
     
-    // prep
-    var doSelect = (switch (task) {
-        case None: y == 0 && space == 0 && spaceX < 1;
-        case _: false;
-      });
-    inventoryHover = -1;
-    var curx = 22 - spaceX.floor();
-    for (i in 0...inventory.length) {
-      if (inventory[i] != null) {
-        if (doSelect
-            && mx.withinI(curx, curx + 31)
-            && my.withinI(36, 36 + 31)) {
-          to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 2, 32, 32);
-          inventoryHover = i;
-        } else {
-          to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 0, 32, 32);
+      // prep
+      var doSelect = (switch (task) {
+          case None: y == 0 && space == 0 && spaceX < 1;
+          case _: false;
+        });
+      inventoryHover = -1;
+      var curx = 22 - spaceX.floor();
+      for (i in 0...inventory.length) {
+        if (inventory[i] != null) {
+          if (doSelect
+              && mx.withinI(curx, curx + 31)
+              && my.withinI(36, 36 + 31)) {
+            to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 2, 32, 32);
+            inventoryHover = i;
+          } else {
+            to.blitAlphaRect(ingr[inventory[i]], curx, 36 + y, 0, 0, 32, 32);
+          }
         }
+        curx += 35;
       }
-      curx += 35;
-    }
     
-    doSelect = (switch (task) {
-        case None | SelectBurger(_): y == 0 && space == 0 && spaceX < 1;
-        case _: false;
-      });
-    slotHover = -1;
-    for (i in 0...plots.length) {
-      plots[i].prerender(true);
-      to.blitAlpha(as["plate_shadow"], platePosX[i] - spaceX.floor(), platePosY[i] + 2 + y);
-      if (doSelect
-          && mx.withinI(platePosX[i], platePosX[i] + 103)
-          && my.withinI(platePosY[i], platePosY[i] + 54)) {
-        slotHover = i;
+      doSelect = (switch (task) {
+          case None | SelectBurger(_): y == 0 && space == 0 && spaceX < 1;
+          case _: false;
+        });
+      slotHover = -1;
+      for (i in 0...plots.length) {
+        plots[i].prerender(true);
+        to.blitAlpha(as["plate_shadow"], platePosX[i] - spaceX.floor(), platePosY[i] + 2 + y);
+        if (doSelect
+            && mx.withinI(platePosX[i], platePosX[i] + 103)
+            && my.withinI(platePosY[i], platePosY[i] + 54)) {
+          slotHover = i;
+        }
+        to.blitAlpha(as["plate"], platePosX[i] - spaceX.floor(), platePosY[i] + y - (slotHover == i ? 2 : 0));
+        if (slots[i] != null) p3d.renderUnit(plots[i], slots[i]);
+        p3d.camX = Grid.TILE_HALF;
+        p3d.camY = Grid.TILE_HALF;
+        plots[i].renderAlpha(to, platePosX[i] - spaceX.floor(), platePosY[i] - 75 + y - (slotHover == i ? 2 : 0));
       }
-      to.blitAlpha(as["plate"], platePosX[i] - spaceX.floor(), platePosY[i] + y - (slotHover == i ? 2 : 0));
-      if (slots[i] != null) p3d.renderUnit(plots[i], slots[i]);
-      p3d.camX = Grid.TILE_HALF;
-      p3d.camY = Grid.TILE_HALF;
-      plots[i].renderAlpha(to, platePosX[i] - spaceX.floor(), platePosY[i] - 75 + y - (slotHover == i ? 2 : 0));
-    }
     
-    // cutting board
-    var space2X = -320 + spaceX;
-    if (bpieces != null) for (p in bpieces) {
-      to.blitAlphaRect(p.b, (objX + p.x - space2X).floor(), (objY + p.y).floor() + y, p.bx, p.by, p.bw, p.bh);
-    }
-    if (knife != null) to.blitAlpha(knife, (knifeX - space2X).floor(), knifeY.floor() + y);
-    if (task == CutTomato) {
-      to.blitAlpha(GUI.turnBit[score % Trig.densityAngle], (knifeX - space2X).floor(), knifeY.floor() + y);
-    }
-    if (obj != null) to.blitAlphaRect(obj, (objX - space2X).floor(), objY.floor() + y, 0, 0, objW, obj.height);
-    for (p in pieces) {
-      if (p.y > Main.H) pieces.remove(p);
-      to.blitAlphaRect(p.b, (p.x - space2X).floor(), p.y.floor() + y, p.bx, p.by, p.bw, p.bh);
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.09;
-    }
-    
-    // grill
-    doSelect = (switch (task) {
-        case None | SelectGrill(_): y == 0 && space == 2 && spaceX > 639;
-        case _: false;
-      });
-    pattyHover = -1;
-    var space3X = -640 + spaceX;
-    for (i in 0...4) {
-      var cury = pattyPosY[i] + y;
-      if (doSelect
-          && mx.withinI(pattyPosX[i], pattyPosX[i] + 119)
-          && my.withinI(pattyPosY[i], pattyPosY[i] + 55)) {
-        pattyHover = i;
-        cury -= 2;
+      // cutting board
+      var space2X = -320 + spaceX;
+      if (bpieces != null) for (p in bpieces) {
+        to.blitAlphaRect(p.b, (objX + p.x - space2X).floor(), (objY + p.y).floor() + y, p.bx, p.by, p.bw, p.bh);
       }
-      grill[i] = (switch (grill[i]) {
+      if (knife != null) to.blitAlpha(knife, (knifeX - space2X).floor(), knifeY.floor() + y);
+      if (task == CutTomato) {
+        to.blitAlpha(GUI.turnBit[score % Trig.densityAngle], (knifeX - space2X).floor(), knifeY.floor() + y);
+      }
+      if (obj != null) to.blitAlphaRect(obj, (objX - space2X).floor(), objY.floor() + y, 0, 0, objW, obj.height);
+      for (p in pieces) {
+        if (p.y > Main.H) pieces.remove(p);
+        to.blitAlphaRect(p.b, (p.x - space2X).floor(), p.y.floor() + y, p.bx, p.by, p.bw, p.bh);
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.09;
+      }
+    
+      // grill
+      doSelect = (switch (task) {
+          case None | SelectGrill(_): y == 0 && space == 2 && spaceX > 639;
+          case _: false;
+        });
+      pattyHover = -1;
+      var space3X = -640 + spaceX;
+      for (i in 0...4) {
+        var cury = pattyPosY[i] + y;
+        if (doSelect
+            && mx.withinI(pattyPosX[i], pattyPosX[i] + 119)
+            && my.withinI(pattyPosY[i], pattyPosY[i] + 55)) {
+          pattyHover = i;
+          cury -= 2;
+        }
+        switch (grill[i]) {
           case First(ten, t):
           var s = pattyState(t);
           to.blitAlpha(as["patty_grill" + s], (pattyPosX[i] - space3X).floor(), cury);
           if (s == 2 && (t >> 4) % 2 == 1) to.blitAlpha(GUI.as["timerEx"], (pattyPosX[i] - space3X).floor(), cury);
-          First(ten, t + 1);
           case Second(ten, f, t):
           var s = pattyState(t);
           to.blitAlpha(as["patty_grill_flip" + s], (pattyPosX[i] - space3X).floor(), cury);
           if (s == 2 && (t >> 4) % 2 == 1) to.blitAlpha(GUI.as["timerEx"], (pattyPosX[i] - space3X).floor(), cury);
-          Second(ten, f, t + 1);
-          case None: None;
-        });
+          case _:
+        }
+      }
     }
     
     // logic
@@ -377,12 +417,18 @@ class Board {
         task = initTask(t);
         timer = 0;
       }
-      case CutCarrot(_): if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Carrot)));
-      case CutCucumber(_): if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Cucumber)));
-      case CutTomato: if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Tomato)));
-      case Tenderise: if (timer >= 10/*TASK_LENGTH*/) start(SelectGrill(score));
+      case CutCarrot(_): if (timer >= TASK_LENGTH) { deinit(); start(SelectBurger(Drop(rankScoreShow(Carrot, score, BASE_CARROT)))); }
+      case CutCucumber(_): if (timer >= TASK_LENGTH) { deinit(); start(SelectBurger(Drop(rankScoreShow(Cucumber, score, BASE_CUCUMBER)))); }
+      case CutTomato: if (timer >= TASK_LENGTH) { deinit(); start(SelectBurger(Drop(rankScoreShow(Tomato, score, BASE_TOMATO)))); }
+      case Tenderise: if (timer >= TASK_LENGTH) { deinit(); GUI.showDropInfo("Raw patty", rankScore(score, BASE_TENDERISE)); start(SelectGrill(score)); }
       case _:
     }
+    
+    for (i in 0...4) grill[i] = (switch (grill[i]) {
+        case First(ten, t): First(ten, t + 1);
+        case Second(ten, f, t): Second(ten, f, t + 1);
+        case None: None;
+      });
     
     // tween
     objX.target(objTX, 19);
@@ -415,13 +461,13 @@ class Board {
       return true;
     }
     if (inventoryHover != -1) {
-      start(switch (inventory[inventoryHover]) {
+      deinit(); start(switch (inventory[inventoryHover]) {
           case Carrot: CutCarrot(null);
           case Cucumber: CutCucumber(null);
           case Tomato: CutTomato;
           case Patty: Tenderise;
-          case Lettuce: SelectBurger(Drop(Lettuce));
-          case Cheese: SelectBurger(Drop(Cheese));
+          case Lettuce: SelectBurger(Drop(rankScoreShow(Lettuce)));
+          case Cheese: SelectBurger(Drop(rankScoreShow(Cheese)));
         });
       inventoryHover = -1;
       return true;
@@ -438,7 +484,7 @@ class Board {
         switch (grill[pattyHover]) {
           case First(ten, t): grill[pattyHover] = Second(ten, t, 0);
           case Second(ten, f, t): grill[pattyHover] = None;
-          start(SelectBurger(Drop(combinedPattyState(ten, f, t))));
+          deinit(); start(SelectBurger(Drop(rankPatty(ten, f, t))));
           case _:
         }
         case _:
@@ -465,6 +511,7 @@ class Board {
         if (bestFit != -1 && bestDist < 50) {
           marks.splice(bestFit, 1);
         }
+        score += 50 - bestDist;
         pieces.push({
              b: obj
             ,bx: objW
@@ -490,7 +537,6 @@ class Board {
       }
       case Stats(_): deinit();
       case Drop(_): deinit();
-      dropLayer.z -= 10;
       case _:
     }
     return true;
@@ -502,6 +548,7 @@ class Board {
         space = (space + (1).negposI(k == KeyA, k == KeyD)).clampI(0, 2); true;
         case [Space, Stats(_)]: deinit(); true;
         case [Space, None]: false;
+        case [Space, Drop(_)]: deinit(); true;
         case [Space, _]: true; // TODO: warn about task
         case _: false;
       });

@@ -149,7 +149,7 @@ class Grid {
     var selVi = (switch [state, turn] {
         case [_, WaitFor(u)]: turn = (u.anim == None ? Idle : turn); -1;
         case [Turn(true, t), Inspect(s) | Select(s)]: c2i(s.gridX, s.gridY);
-        case _: GUI.hide("stats"); -1;
+        case _: if (GUI.currentStatsGrid) GUI.hide("stats"); -1;
       });
     var vi = 0;
     for (y in 0...h) for (x in 0...w) {
@@ -284,8 +284,8 @@ class Grid {
           else Idle;
           case _: turn;
         });
-      if (showStats) GUI.showStats(atGrid.stats);
-      else GUI.hide("stats");
+      if (showStats) GUI.showStats(atGrid.stats, true);
+      else if (GUI.currentStatsGrid) GUI.hide("stats");
       initTurn(turn);
       case _:
     }
