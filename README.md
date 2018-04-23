@@ -26,12 +26,14 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
+ - unit deploy
+ - tbs win / loss conditions
+
 ## TODO ##
 
  - gameplay
    - open world
    - tbs
-     - traits
  - graphics
    - particle effecs
    - [.] time progression via palette shifts
@@ -47,6 +49,7 @@ in order of importance
  - GPLY show timer warning when in TBS mode
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right
+ - GPLY / VIS particles for TBS traits / status effects
  - GPLY shift baseline according to skill
  - VIS death animation
  - PERF cull back faces

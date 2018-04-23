@@ -38,6 +38,12 @@ class Grid {
       vi++;
     }
     
+    var r = new RV();
+    r.grid = this;
+    r.gridX = 0;
+    r.gridY = 0;
+    units[0] = r;
+    
     var b = new Burger();
     b.grid = this;
     b.gridX = 2;
@@ -60,13 +66,48 @@ class Grid {
   }
   
   inline function c2i(x:Int, y:Int):Int return x + y * w;
+  inline function i2c(i:Int):{x:Int, y:Int} return {x: i % w, y: (i / w).floorZ()};
+  inline function idist(i:Int, j:Int):Int {
+    var p1 = i2c(i);
+    var p2 = i2c(j);
+    return (p1.x - p2.x).absI() + (p1.y - p2.y).absI();
+  }
   
   function clearUnits(player:Bool):Void {
+    var healer = [];
+    var smell = [];
+    //var poison = [];
+    var toxic = [];
     for (vi in 0...units.length) {
       if (units[vi] == null) continue;
+      for (t in units[vi].stats.traits) switch (t) {
+        case Healer if (units[vi].player == player): healer.push(vi);
+        case Smell if (units[vi].player != player): smell.push(vi);
+        //case Poison if (units[vi].player != player): poison.push(vi);
+        case Toxic if (units[vi].player != player): toxic.push(vi);
+        case _:
+      }
       if (units[vi].player != player) continue;
       units[vi].aiMoved = false;
       units[vi].stats.mp = units[vi].stats.mpMax;
+      units[vi].stats.ap = units[vi].stats.apMax;
+    }
+    for (vi in 0...units.length) {
+      if (units[vi] == null) continue;
+      if (units[vi].player != player) continue;
+      for (h in healer) {
+        if (idist(h, vi) <= 2 && h != vi) units[vi].stats.hp = (units[vi].stats.hp + 1).minI(units[vi].stats.hpMax);
+      }
+      for (s in smell) {
+        if (idist(h, vi) <= 2) units[vi].stats.ap = (units[vi].stats.ap - 1).maxI(1);
+      }
+      for (t in toxic) {
+        if (idist(h, vi) <= 2) units[vi].stats.hp = (units[vi].stats.hp - 1).maxI(1);
+      }
+      if (units[vi].stats.poison > 0) {
+        units[vi].stats.hp = (units[vi].stats.hp - 1).maxI(1);
+        units[vi].stats.poison--;
+      }
     }
   }
   
@@ -225,7 +266,7 @@ class Grid {
     var canim:UnitAnimation = None;
     if (renEnts[ati].attack) {
       canim = Func(() -> {
-          units[ati].hit(sel.stats.ap);
+          units[ati].hit(sel.stats.ap, sel.stats.traits.indexOf(Poison) != -1);
           sel.stats.mp = 0;
         }, None);
     }

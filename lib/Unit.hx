@@ -12,7 +12,7 @@ class Unit {
   public static var as:Map<String, Bitmap>;
   public static var ss:Map<String, Array<P3DSkeleton>>;
   
-  public static function init(u:FluentBitmap):Void {
+  public static function init(u:FluentBitmap, rv:FluentBitmap):Void {
     as = new Map();
     ss = [
          "bunTop" => [Offset([P3DBuild.autoBox(u, 0, 8, 16, 16, 6)], -8, -8, 0, 0)]
@@ -45,6 +45,11 @@ class Unit {
               Offset([P3DBuild.autoBox(u, 112, 32, 16, 16, 11)], -8, -8, 14, 0)
              ,Offset([P3DBuild.autoBox(u, 176, 8, 24, 24, 3)], -12, -12, 16, 0)
           ]
+        ,"rv" => [
+             Offset([P3DBuild.autoBox(rv, 0, 8, 64, 32, 48)], -32, -16, 0, 0)
+            ,Offset([Wall(rv >> new Cut(64, 56, 32, 46), 9)], 24, -16, 0, 0)
+            ,Offset([Floor(rv >> new Cut(96, 56, 13, 32), 0, 32)], 22, -16, 22, 0)
+          ]
       ];
   }
   
@@ -70,22 +75,34 @@ class Unit {
   public function update():Void {
     anim = (switch (anim) {
         case Walk(ox, oy, f, n):
-        angle = ANGLES[oy + 1][ox + 1];
-        subX = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * ox).floor();
-        subY = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * oy).floor();
-        if (f < MOVE_TIME - 1) Walk(ox, oy, f + 1, n);
-        else {
-          moveTo(gridX + ox, gridY + oy);
-          n;
+        var tangle = ANGLES[oy + 1][ox + 1];
+        if (tangle != angle) {
+          angle += 36 + Trig.shortestAngle(angle, tangle);
+          angle %= Trig.densityAngle;
+          Walk(ox, oy, f, n);
+        } else {
+          subX = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * ox).floor();
+          subY = (Timing.quadInOut.getF(f / MOVE_TIME) * Grid.TILE_DIM * oy).floor();
+          if (f < MOVE_TIME - 1) Walk(ox, oy, f + 1, n);
+          else {
+            moveTo(gridX + ox, gridY + oy);
+            n;
+          }
         }
         case Attack(ox, oy, f, n):
-        angle = ANGLES[oy + 1][ox + 1];
-        subX = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * ox).floor();
-        subY = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * oy).floor();
-        if (f < ATTACK_TIME - 1) Attack(ox, oy, f + 1, n);
-        else {
-          subX = subY = 0;
-          n;
+        var tangle = ANGLES[oy + 1][ox + 1];
+        if (tangle != angle) {
+          angle += 36 + Trig.shortestAngle(angle, tangle);
+          angle %= Trig.densityAngle;
+          Attack(ox, oy, f, n);
+        } else {
+          subX = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * ox).floor();
+          subY = (Timing.quadIn.getF(f / ATTACK_TIME) * Grid.TILE_HALF * oy).floor();
+          if (f < ATTACK_TIME - 1) Attack(ox, oy, f + 1, n);
+          else {
+            subX = subY = 0;
+            n;
+          }
         }
         case Func(f, n): f(); n;
         case _: None;
@@ -102,8 +119,9 @@ class Unit {
     grid.units[gridX + gridY * grid.w] = null;
   }
   
-  public function hit(dmg:Int):Void {
+  public function hit(dmg:Int, poison:Bool):Void {
     stats.hp -= dmg;
+    if (poison) stats.poison = 3;
     if (stats.hp <= 0) {
       remove();
     }

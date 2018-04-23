@@ -6,53 +6,54 @@ class Enemy extends Unit {
   public function new(type:EnemyType) {
     super();
     this.type = type;
+    function makeStats(s:{name:String, hp:Int, ap:Int, mp:Int, ?traits:Array<UnitTrait>}):UnitStats {
+      return {
+           name: s.name
+          ,hp: s.hp, hpMax: s.hp
+          ,ap: s.ap, apMax: s.ap
+          ,mp: s.mp, mpMax: s.mp
+          ,rank: null
+          ,traits: s.traits == null ? [] : s.traits
+          ,poison: 0
+        };
+    }
     switch (type) {
       case Scorpion(t):
-      stats = t == 1 ? {
+      stats = makeStats(t == 1 ? {
            name: "Scorpion"
-          ,hp: 3, hpMax: 3
+          ,hp: 3
           ,ap: 2
-          ,mp: 1, mpMax: 1
-          ,rank: null
-          ,traits: []
+          ,mp: 1
         } : {
            name: "Scorpicore"
-          ,hp: 3, hpMax: 3
+          ,hp: 3
           ,ap: 2
-          ,mp: 2, mpMax: 2
-          ,rank: null
-          ,traits: []
-        };
+          ,mp: 2
+        });
       layers = [P3DBuild.build(
            Anchor("")
           ,Unit.ss["scorpion" + t]
           ,null
         )];
       case Ufo(t):
-      stats = (switch (t) {
+      stats = makeStats(switch (t) {
           case 1: {
              name: "UFO minor"
-            ,hp: 2, hpMax: 2
+            ,hp: 2
             ,ap: 1
-            ,mp: 4, mpMax: 4
-            ,rank: null
-            ,traits: []
+            ,mp: 4
           };
           case 2: {
              name: "UFO major"
-            ,hp: 4, hpMax: 4
+            ,hp: 4
             ,ap: 4
-            ,mp: 3, mpMax: 3
-            ,rank: null
-            ,traits: []
+            ,mp: 3
           };
           case _: {
              name: "UFO saucer"
-            ,hp: 7, hpMax: 7
+            ,hp: 7
             ,ap: 4
-            ,mp: 3, mpMax: 3
-            ,rank: null
-            ,traits: []
+            ,mp: 3
           };
         });
       layers = [P3DBuild.build(

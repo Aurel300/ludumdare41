@@ -34,10 +34,11 @@ class Burger extends Unit {
     stats = {
          name: "Untitled burger"
         ,hp: 1, hpMax: 1
-        ,ap: 1
+        ,ap: 1, apMax: 1
         ,mp: 1, mpMax: 1
         ,rank: RankS
         ,traits: []
+        ,poison: 0
       };
     addLayer(BunBottom);
   }
@@ -114,7 +115,7 @@ class Burger extends Unit {
     if (check(recipe, Sauce) != -1) mp++;
     if (check(recipe, Pepsalt) != -1) ap++;
     stats.hpMax = hp;
-    stats.ap = ap;
+    stats.apMax = ap;
     stats.mpMax = mp;
     stats.traits = traits;
     
@@ -131,7 +132,7 @@ class Burger extends Unit {
         case RankF: 1;
       });
     stats.hpMax = stats.hpMax.minI(maxStat);
-    stats.ap = stats.ap.minI(maxStat);
+    stats.apMax = stats.apMax.minI(maxStat);
     stats.mpMax = stats.mpMax.minI(maxStat);
   }
   

@@ -25,4 +25,9 @@ class Trig {
     cosAngle[27] = 0;
     sinAngle[27] = -1;
   }
+  
+  public static function shortestAngle(from:Int, to:Int):Int {
+    var ret = to - from;
+    return ret > 18 ? -ret.signI() : ret.signI();
+  }
 }

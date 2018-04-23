@@ -13,10 +13,8 @@ using sk.thenet.FM;
 class SGame extends JamState {
   var mode:GMode = TBS;
   
-  public var p3d:P3D;
+  var p3d:P3D;
   var plot:Plot;
-  
-  var build:P3DBuild;
   
   var grid:Grid;
   var board:Board;
@@ -30,17 +28,6 @@ class SGame extends JamState {
     
     phasers["t"] = new Phaser(3);
     
-    var rv = amB("rv").fluent;
-    build = P3DBuild.build(
-         Anchor("rv")
-        ,[
-           Offset([P3DBuild.autoBox(rv, 0, 8, 64, 32, 48)], -32, -16, 0, 0)
-          ,Offset([Wall(rv >> new Cut(64, 56, 32, 46), 9)], 24, -16, 0, 0)
-          ,Offset([Floor(rv >> new Cut(96, 56, 13, 32), 0, 32)], 22, -16, 22, 0)
-        ]
-        ,null
-      );
-    
     grid = new Grid(5, 5);
     
     board = new Board();
@@ -53,11 +40,10 @@ class SGame extends JamState {
     var zoomTarget = 1.0;
     switch (mode) {
       case Roam:
-      p3d.renderBuild(plot, build);
+      //p3d.renderBuild(plot, build);
       case TBS:
       zoomTarget = 0.9 + boardBT.valueF;
       p3d.renderGrid(plot, grid);
-      p3d.renderBuild(plot, build);
     }
     
     plot.render(ab, 0, 0);
@@ -82,16 +68,6 @@ class SGame extends JamState {
     p3d.camX.target(p3d.camTX, 29);
     p3d.camY.target(p3d.camTY, 29);
     p3d.zoom.target(zoomTarget + (2.0).negposF(ak(KeyR), ak(KeyF)), 19);
-    
-    //build.angle = (app.mouse.x >> 2) % 36;
-    //build.tilt = (app.mouse.y >> 2) % 36;
-    /*
-    build.angle %= 36;
-    if (ak(ArrowUp) && ph("t") == 0) build.tilt++;
-    build.tilt %= 36;
-    build.x = 150;
-    build.y = 250;
-    */
   }
   
   override public function mouseMove(mx, my) {

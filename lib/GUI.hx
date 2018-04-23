@@ -96,7 +96,7 @@ class GUI {
     b.fill(0);
     Text.render(b, 5, 21 - 18, s.name);
     Text.render(b, 25, 21, 'HP: ${s.hp}/${s.hpMax}');
-    Text.render(b, 25, 21 + 18, 'AP: ${s.ap}');
+    Text.render(b, 25, 21 + 18, 'AP: ${s.ap}/${s.apMax}');
     Text.render(b, 25, 21 + 18 * 2, 'MP: ${s.mp}/${s.mpMax}');
     if (s.rank != null) {
       Text.render(b, 82, 21 + 18, "Rank");
