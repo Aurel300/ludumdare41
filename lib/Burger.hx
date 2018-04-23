@@ -21,13 +21,28 @@ class Burger extends Unit {
     ];
   
   public var lastZ:Int = 0;
+  public var recipe:Array<BurgerLayer> = [];
   
   public function new() {
     super();
     addLayer(BunBottom);
+    stats = {
+         name: "Untitled burger"
+        ,hp: 5, hpMax: 7
+        ,ap: 2
+        ,mp: 2, mpMax: 2
+        ,rank: RankA
+      };
   }
   
   public function addLayer(t:BurgerLayer, ?map:Map<Int, Int>):P3DBuild {
+    if (t != BunBottom && t != BunTop) {
+      recipe.push(t);
+      stats.name = (switch (recipe) {
+          case [Lettuce, Tomato, Patty(_), Cucumber]: "Classic burger";
+          case _: "Mutt burger";
+        });
+    }
     var off = 0;
     var layer = P3DBuild.build(
         Anchor("")
@@ -43,9 +58,7 @@ class Burger extends Unit {
           }, 0, 0, lastZ, 0)]
         ,null
       );
-    if (map != null) {
-      for (p in layer.parts) p.remap(map);
-    }
+    if (map != null) for (p in layer.parts) p.remap(map);
     layers.push(layer);
     lastZ += off;
     return layer;

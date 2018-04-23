@@ -3,11 +3,12 @@ package lib;
 import sk.thenet.anim.*;
 import sk.thenet.bmp.manip.*;
 import sk.thenet.plat.Platform;
+import lib.UnitStats.UnitRank;
 
 class GUI {
   public static var as:Map<String, Bitmap>;
   public static var dropArrow:Array<Bitmap>;
-  public static var banners:Map<String, Bitmap>;
+  public static var banners:Map<UnitRank, Bitmap>;
   
   public static var panels:Map<String, GUI>;
   
@@ -22,11 +23,11 @@ class GUI {
         ,"stats" => b >> new Cut(0, 160, 120, 80)
       ];
     banners = [
-         "rank-s" => Text.banner(Platform.createBitmap(40, 32, 0), "S")
-        ,"rank-a" => Text.banner(Platform.createBitmap(40, 32, 0), "A")
-        ,"rank-b" => Text.banner(Platform.createBitmap(40, 32, 0), "B")
-        ,"rank-d" => Text.banner(Platform.createBitmap(40, 32, 0), "D")
-        ,"rank-f" => Text.banner(Platform.createBitmap(40, 32, 0), "F")
+         RankS => Text.banner(Platform.createBitmap(40, 32, 0), "S")
+        ,RankA => Text.banner(Platform.createBitmap(40, 32, 0), "A")
+        ,RankB => Text.banner(Platform.createBitmap(40, 32, 0), "B")
+        ,RankD => Text.banner(Platform.createBitmap(40, 32, 0), "D")
+        ,RankF => Text.banner(Platform.createBitmap(40, 32, 0), "F")
       ];
     dropArrow = [ for (i in 0...Trig.densityAngle)
       as["dropArrow"].fluent
@@ -65,15 +66,17 @@ class GUI {
   public static function show(id:String):Void panels[id].state.setTo(true);
   public static function hide(id:String):Void panels[id].state.setTo(false);
   
-  public static function showStats(b:Burger):Void {
+  public static function showStats(s:UnitStats):Void {
     var b = panels["stats"].bs[1];
     b.fill(0);
-    Text.render(b, 5, 21 - 18, "Generic burger");
-    Text.render(b, 25, 21, "HP: 5/7");
-    Text.render(b, 25, 21 + 18, "AP: 5/7");
-    Text.render(b, 25, 21 + 18 * 2, "MP: 5/7");
-    Text.render(b, 82, 21 + 18, "Rank");
-    b.blitAlpha(banners["rank-s"], 80, 45);
+    Text.render(b, 5, 21 - 18, s.name);
+    Text.render(b, 25, 21, 'HP: ${s.hp}/${s.hpMax}');
+    Text.render(b, 25, 21 + 18, 'AP: ${s.ap}');
+    Text.render(b, 25, 21 + 18 * 2, 'MP: ${s.mp}/${s.mpMax}');
+    if (s.rank != null) {
+      Text.render(b, 82, 21 + 18, "Rank");
+      b.blitAlpha(banners[s.rank], 80, 45);
+    }
     show("stats");
   }
   

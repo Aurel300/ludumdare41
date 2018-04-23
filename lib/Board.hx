@@ -12,6 +12,7 @@ class Board {
     as = [
          "carrot" => f >> new Cut(0, 8, 232, 64)
         ,"tomato" => f >> new Cut(0, 72, 88, 80)
+        ,"cucumber" => f >> new Cut(400, 48, 224, 64)
         ,"bun" => f >> new Cut(88, 72, 144, 80)
         ,"patty" => f >> new Cut(0, 152, 184, 72)
         ,"knife" => f >> new Cut(232, 16, 168, 48)
@@ -21,10 +22,14 @@ class Board {
         ,"plate" => f >> new Cut(184, 168, 104, 56)
         ,"plate_shadow" => f >> new Cut(184 + 104, 168, 104, 56)
       ];
+    var i = 0;
     ingr = [
-         Carrot => f >> new Cut(400, 8, 32, 34)
-        ,Tomato => f >> new Cut(432, 8, 32, 34)
-        ,Patty => f >> new Cut(464, 8, 32, 34)
+         Carrot => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Tomato => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Patty => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Cucumber => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Lettuce => f >> new Cut(400 + i++ * 32, 8, 32, 34)
+        ,Cheese => f >> new Cut(400 + i++ * 32, 8, 32, 34)
       ];
   }
   
@@ -50,7 +55,7 @@ class Board {
   public var space:Int = 0;
   public var spaceX:Float = 0;
   public var spaceTX:Float = 0;
-  public var inventory:Array<Ingredient> = [Carrot, Tomato, Patty, null, null, null, null, null];
+  public var inventory:Array<Ingredient> = [Carrot, Tomato, Patty, Cucumber, Lettuce, Cheese, null, null];
   public var inventoryHover:Int = -1;
   public var slotHover:Int = -1;
   public var slotSelect:Int = -1;
@@ -85,6 +90,14 @@ class Board {
         CutCarrot([ for (i in 1...6) {
             55 + i * 38 + FM.prng.nextMod(18);
           } ]);
+        case CutCucumber(_):
+        obj = as["cucumber"];
+        objW = as["cucumber"].width;
+        objTX = 40;
+        objTY = 80;
+        CutCucumber([ for (i in 1...8) {
+            65 + i * 25 + FM.prng.nextMod(18);
+          } ]);
         case Tenderise:
         obj = null;
         objTX = 60;
@@ -105,9 +118,9 @@ class Board {
           } ];
         Tenderise;
         case Stats(b):
-        GUI.showStats(b);
-        GUI.show("trash");
-        GUI.show("deploy");
+        GUI.showStats(b.stats);
+        if (b.layers.length > 1) GUI.show("trash");
+        if (b.layers.length > 1) GUI.show("deploy");
         Stats(b);
         case Drop(l):
         dropLayer = slots[slotSelect].addLayer(l);
@@ -152,7 +165,7 @@ class Board {
       knifeTX = Main.W + 10;
       knifeTY = 40;
       objTY = Main.H + 10;
-      case CutCarrot(marks):
+      case CutCarrot(marks) | CutCucumber(marks):
       knifeTY = 40;
       if (timer == 0 || timer == 320) Sfx.play("cut-start");
       if (timer < 320) {
@@ -241,8 +254,8 @@ class Board {
         task = initTask(t);
         timer = 0;
       }
-      case CutCarrot(_):
-      if (timer >= 640) start(SelectBurger(Drop(Carrot)));
+      case CutCarrot(_): if (timer >= 640) start(SelectBurger(Drop(Carrot)));
+      case CutCucumber(_): if (timer >= 640) start(SelectBurger(Drop(Cucumber)));
       case Tenderise:
       if (timer >= 640) start(SelectBurger(Drop(Patty(0))));
       case _:
@@ -281,14 +294,17 @@ class Board {
     if (inventoryHover != -1) {
       start(switch (inventory[inventoryHover]) {
           case Carrot: CutCarrot(null);
+          case Cucumber: CutCucumber(null);
           case Tomato: CutCarrot(null);
           case Patty: Tenderise;
+          case Lettuce: SelectBurger(Drop(Lettuce));
+          case Cheese: SelectBurger(Drop(Cheese));
         });
       inventoryHover = -1;
       return true;
     }
     switch (task) {
-      case CutCarrot(marks):
+      case CutCarrot(marks) | CutCucumber(marks):
       if (timer.withinI(320, 640)) {
         Sfx.play("cut");
         knifeDip += 2;
@@ -307,7 +323,7 @@ class Board {
           marks.splice(bestFit, 1);
         }
         pieces.push({
-             b: as["carrot"]
+             b: obj
             ,bx: objW
             ,by: 0
             ,bw: prevW - objW
@@ -338,7 +354,8 @@ class Board {
   
   public function keyUp(k:Key):Bool {
     return (switch [k, task] {
-        case [KeyA | KeyD, None]: space = (space + (1).negposI(k == KeyA, k == KeyD)).clampI(0, 1); true;
+        case [KeyA | KeyD, None | Stats(_)]: deinit();
+        space = (space + (1).negposI(k == KeyA, k == KeyD)).clampI(0, 1); true;
         case [Space, Stats(_)]: deinit(); true;
         case [Space, None]: false;
         case [Space, _]: true; // TODO: warn about task
@@ -350,6 +367,7 @@ class Board {
 enum BoardTask {
   None;
   CutCarrot(marks:Array<Int>);
+  CutCucumber(marks:Array<Int>);
   Tenderise;
   
   Starting(t:BoardTask, f:Int);

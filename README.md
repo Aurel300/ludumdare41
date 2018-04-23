@@ -17,9 +17,16 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - cooking
-   - assembling burger
-     <- gui to deploy / trash
+ - tbs
+   - selection
+     - range highlight
+   - movement
+     - bfs
+   - attacks
+     - animations
+   - time limit
+   - enemies
+     - ai - enumerate options, sort, choose one of the first options
 
 ## TODO ##
 
@@ -55,7 +62,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
  - PERF cull back faces
  - VIS shadows
- - VIS banners
  - GPLY tutorial / instruction text in bottom left
  - GPLY tooltip in bottom right
 

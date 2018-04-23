@@ -4,4 +4,7 @@ enum Ingredient {
   Carrot;
   Tomato;
   Patty;
+  Cucumber;
+  Lettuce;
+  Cheese;
 }

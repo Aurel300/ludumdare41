@@ -5,6 +5,7 @@ class Grid {
   public static inline var TILE_HALF:Int = 16;
   public static inline var TILE_MARGIN:Int = 2;
   public static var tileData:Vector<Int> = Vector.fromArrayCopy([-1]);
+  public static var tileDataSelect:Vector<Int> = Vector.fromArrayCopy([-2]);
   public static var tileDataHover:Vector<Int> = Vector.fromArrayCopy([-3]);
   
   public var x:Int = 0;
@@ -14,6 +15,9 @@ class Grid {
   
   public var units:Vector<Unit>;
   public var renTiles:Vector<P3DPart>;
+  
+  public var state:GridState = Turn(true);
+  public var turn:TurnState = Idle;
   
   var renEnts:Vector<GridTile>;
   
@@ -25,16 +29,16 @@ class Grid {
     renTiles = new Vector(w * h);
     var vi = 0;
     for (y in 0...h) for (x in 0...w) {
-      renEnts[vi] = new GridTile(x, y);
+      renEnts[vi] = new GridTile(this, x, y);
       renTiles[vi] = renEnts[vi].part;
       vi++;
     }
     
     var b = new Burger();
+    b.player = true;
     b.grid = this;
     b.gridX = 2;
     b.gridY = 2;
-    b.addLayer(BunBottom);
     b.addLayer(Tomato);
     b.addLayer(Carrot);
     b.addLayer(Patty(1));
@@ -44,12 +48,48 @@ class Grid {
     b.addLayer(BunTop);
     units[2 + 2 * 5] = b;
   }
+  
+  public function update():Void {
+    
+  }
+  
+  public function gridClick(x:Int, y:Int):Void {
+    switch (state) {
+      case Turn(true):
+      var atGrid = units[x + y * w];
+      turn = (switch (turn) {
+          case Idle:
+          if (atGrid != null) {
+            atGrid.player ? Select(atGrid) : Inspect(atGrid);
+          } else Idle;
+          case Inspect(_):
+          if (atGrid != null) {
+            atGrid.player ? Select(atGrid) : Inspect(atGrid);
+          } else Idle;
+          case Select(sel):
+          if (atGrid == sel) Idle;
+          else if (atGrid == null) {
+            sel.moveTo(x, y);
+            Idle;
+          } else if (atGrid.player) Select(atGrid);
+          else Idle;
+          case _: turn;
+        });
+      case _:
+    }
+  }
 }
 
 class GridTile implements Entity {
+  public var grid:Grid;
   public var part:P3DPart;
+  public var x:Int;
+  public var y:Int;
   
-  public function new(x:Int, y:Int) {
+  public function new(grid:Grid, x:Int, y:Int) {
+    this.grid = grid;
+    this.x = x;
+    this.y = y;
     part = new P3DPart(this);
     part.vert = false;
     part.x = x * Grid.TILE_DIM + Grid.TILE_MARGIN;
@@ -61,16 +101,27 @@ class GridTile implements Entity {
   }
   
   public function partClick():Void {
-    
+    grid.gridClick(x, y);
   }
   
   public function partMOver():Void {
-    part.z = 3;
     part.data = Grid.tileDataHover;
   }
   
   public function partMLeave():Void {
-    part.z = 1;
     part.data = Grid.tileData;
   }
+}
+
+enum GridState {
+  // intro, win, loss?
+  
+  Turn(player:Bool);
+}
+
+enum TurnState {
+  Idle;
+  Inspect(u:Unit);
+  Select(u:Unit);
+  WaitFor(u:Unit);
 }

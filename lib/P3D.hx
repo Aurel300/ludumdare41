@@ -42,6 +42,7 @@ class P3D {
   }
   
   public function renderGrid(to:Plot, g:Grid):Void {
+    g.update();
     for (ti in 0...g.renTiles.length) {
       render(to, g.renTiles[ti]);
       if (g.units[ti] != null) renderUnit(to, g.units[ti]);

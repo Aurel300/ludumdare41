@@ -27,6 +27,8 @@ class Unit {
   public var gridY:Int = 0;
   public var anim:UnitAnimation = None;
   
+  public var stats:UnitStats;
+  
   public var layers:Array<P3DBuild> = [];
   
   public function new() {
@@ -38,6 +40,13 @@ class Unit {
       l.x = gridX * Grid.TILE_DIM + Grid.TILE_HALF;
       l.y = gridY * Grid.TILE_DIM + Grid.TILE_HALF;
     }
+  }
+  
+  public function moveTo(x:Int, y:Int):Void {
+    grid.units[gridX + gridY * grid.w] = null;
+    gridX = x;
+    gridY = y;
+    grid.units[gridX + gridY * grid.w] = this;
   }
 }
 

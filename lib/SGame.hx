@@ -71,8 +71,8 @@ class SGame extends JamState {
       var cmx = (3.3).negposF(ak(KeyA), ak(KeyD));
       var cmy = (3.3).negposF(ak(KeyW), ak(KeyS));
       if (cmx != 0 || cmy != 0) {
-        var c = Trig.cosAngle[p3d.camAngle] * (2.1 * p3d.zoom);
-        var s = Trig.sinAngle[p3d.camAngle] * (2.1 * p3d.zoom);
+        var c = Trig.cosAngle[p3d.camAngle] * (2.1 / p3d.zoom);
+        var s = Trig.sinAngle[p3d.camAngle] * (2.1 / p3d.zoom);
         p3d.camTX += c * cmx + s * cmy;
         p3d.camTY += -s * cmx + c * cmy;
       }
