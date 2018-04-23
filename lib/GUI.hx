@@ -15,6 +15,8 @@ class GUI {
   
   public static var panels:Map<String, GUI>;
   
+  static var textra = 148;
+  
   public static function init(b:FluentBitmap):Void {
     as = [
          "timer1" => b >> new Cut(0, 8, 32, 40)
@@ -52,6 +54,8 @@ class GUI {
       as["turnBit"].fluent
         >> new Rotate((-i / Trig.densityAngle) * Math.PI * 2)
         >> new Grow(-60, -60, -60, -60) ];
+    var transBg:FluentBitmap = Platform.createBitmap(Main.W, 32, 0);
+    transBg.fillRect(0, 8, Main.W, 16, Pal.reg[1]);
     panels = [
          "drop" => new GUI(-64, 128, 8, 128, [as["drop"], dropArrow[0]])
         ,"stats" => new GUI(Main.W, Main.H - 88, Main.W - 128, Main.H - 88, [as["stats"], Platform.createBitmap(120, 80, 0)])
@@ -59,12 +63,51 @@ class GUI {
         ,"deploy" => new GUI(Main.W - 48 - 8, -48, Main.W - 48 - 8, -2, [as["deploy"]])
         ,"timer" => new GUI(-32, 8, 8, 8, [as["timer1"]])
         ,"dropInfo" => new GUI(-120, 8, 8, 8, [as["box"].fluent >> new Box(new Point2DI(3, 3), new Point2DI(13, 13), 120, 32) >> new Grow(0, 0, 0, 10), Platform.createBitmap(120, 42, 0)])
+        ,"trans_fight" => new GUI(Main.W, Main.H2 - 30, 0, Main.H2 - 30, [Text.banner(transBg >> new Copy(), "CULINARY WARFARE!")])
+        ,"trans_fight2" => new GUI(Main.W, Main.H2 + 4, -80, Main.H2 + 4, [{
+            var t = Platform.createBitmap(Main.W + textra * 2, 16, 0);
+            t.fillRect(0, 4, Main.W + textra * 2, 8, Pal.reg[2]);
+            var curx = 0;
+            while (curx < Main.W + textra * 2) {
+              Text.render(t, curx, 0, "COOK BURGERS TO VICTORY!");
+              curx += textra;
+            }
+            t;
+          }])
+        ,"trans_win" => new GUI(Main.W, Main.H2 - 30, 0, Main.H2 - 30, [Text.banner(transBg >> new Copy(), "GLORIOUS VICTORY!")])
+        ,"trans_win2" => new GUI(Main.W, Main.H2 + 4, -80, Main.H2 + 4, [{
+            var t = Platform.createBitmap(Main.W + textra * 2, 16, 0);
+            t.fillRect(0, 4, Main.W + textra * 2, 8, Pal.reg[2]);
+            var curx = 0;
+            while (curx < Main.W + textra * 2) {
+              Text.render(t, curx, 0, "FLAWLESS COOKERY ACTION!");
+              curx += textra;
+            }
+            t;
+          }])
+        ,"trans_loss" => new GUI(Main.W, Main.H2 - 30, 0, Main.H2 - 30, [Text.banner(transBg >> new Copy(), "TERRIBLE DEFEAT!")])
+        ,"trans_loss2" => new GUI(Main.W, Main.H2 + 4, -80, Main.H2 + 4, [{
+            var t = Platform.createBitmap(Main.W + textra * 2, 16, 0);
+            t.fillRect(0, 4, Main.W + textra * 2, 8, Pal.reg[2]);
+            var curx = 0;
+            while (curx < Main.W + textra * 2) {
+              Text.render(t, curx, 0, "BUTTER LUCK NEXT TIME!");
+              curx += textra;
+            }
+            t;
+          }])
       ];
     panels["drop"].ignoreClicks = true;
     Text.render(panels["trash"].bs[0], 4, 30, "Destroy!");
     Text.render(panels["deploy"].bs[0], 8, 24, "Deploy!");
     panels["trash"].moy = -2;
     panels["deploy"].moy = 2;
+    panels["trans_fight"].state = new Bitween(90);
+    panels["trans_fight2"].state = new Bitween(130);
+    panels["trans_win"].state = new Bitween(90);
+    panels["trans_win2"].state = new Bitween(130);
+    panels["trans_loss"].state = new Bitween(90);
+    panels["trans_loss2"].state = new Bitween(130);
   }
   
   public static function clickAll(mx:Int, my:Int):Bool {
@@ -83,6 +126,27 @@ class GUI {
       }
     }
     return mo;
+  }
+  
+  public static function showTransition(id:String):Void {
+    var cnt = 0;
+    show('trans_${id}');
+    show('trans_${id}2');
+    panels['trans_${id}2'].box = 0;
+    panels['trans_${id}'].tick = function () {
+      cnt++;
+      if (cnt == 300) {
+        hide('trans_${id}');
+      } else if (cnt == 400) {
+        panels['trans_${id}2'].state.setTo(false, true);
+        panels['trans_${id}'].tick = () -> {};
+      }
+    };
+    panels['trans_${id}2'].tick = function () {
+      if (panels['trans_${id}2'].state.valueF < .9) return;
+      panels['trans_${id}2'].box -= 2;
+      if (panels['trans_${id}2'].box < -textra && cnt < 180) panels['trans_${id}2'].box += textra;
+    };
   }
   
   public static function show(id:String):Void panels[id].state.setTo(true);
@@ -132,6 +196,7 @@ class GUI {
   public var h:Int;
   public var mox:Int = 0;
   public var moy:Int = 0;
+  public var box:Int = 0;
   public var bs:Array<Bitmap>;
   public var ignoreClicks:Bool = false;
   
@@ -158,7 +223,10 @@ class GUI {
     return false;
   }
   
+  public dynamic function tick():Void {}
+  
   public function render(to:Bitmap, mx:Int, my:Int):Bool {
+    tick();
     var mo:Bool = false;
     state.tick();
     if (state.isOff) return false;
@@ -170,7 +238,7 @@ class GUI {
       mo = true;
     }
     for (b in bs) if (b != null) {
-      to.blitAlpha(b, px, py);
+      to.blitAlpha(b, px + box, py);
     }
     return mo;
   }

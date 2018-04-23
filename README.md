@@ -27,6 +27,10 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 ## Current focus ##
 
  - tbs win / loss conditions
+   - at the beginning of each turn check unit counts
+ - end turn button
+ - HUD for RV health and turn timer / status
+ - HUD for kitchen
 
 ## TODO ##
 

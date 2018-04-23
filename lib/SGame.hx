@@ -32,6 +32,8 @@ class SGame extends JamState {
     
     board = new Board();
     boardBT = new Bitween(40);
+    
+    GUI.showTransition("loss");
   }
   
   override public function tick() {
