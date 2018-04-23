@@ -165,6 +165,17 @@ class Board {
     p3d.camAngle = 3;
     p3d.offY = 90;
     
+    GUI.panels["deploy"].action = function () {
+      switch (task) {
+        case Stats(_):
+        if (Main.g.grid.deploy(slots[slotSelect])) {
+          slots[slotSelect] = new Burger();
+          Main.g.boardBT.setTo(false);
+        }
+        case _:
+      }
+      deinit();
+    };
     GUI.panels["trash"].action = function () {
       switch (task) {
         case Stats(_): slots[slotSelect] = new Burger();

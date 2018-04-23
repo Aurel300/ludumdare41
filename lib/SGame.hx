@@ -16,9 +16,9 @@ class SGame extends JamState {
   var p3d:P3D;
   var plot:Plot;
   
-  var grid:Grid;
-  var board:Board;
-  var boardBT:Bitween;
+  public var grid:Grid;
+  public var board:Board;
+  public var boardBT:Bitween;
   
   public function new(app) super("game", app);
   

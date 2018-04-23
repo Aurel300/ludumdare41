@@ -119,6 +119,13 @@ class Unit {
     grid.units[gridX + gridY * grid.w] = null;
   }
   
+  public function putAt(g:Grid, x:Int, y:Int):Void {
+    grid = g;
+    gridX = x;
+    gridY = y;
+    grid.units[gridX + gridY * grid.w] = this;
+  }
+  
   public function hit(dmg:Int, poison:Bool):Void {
     stats.hp -= dmg;
     if (poison) stats.poison = 3;
@@ -130,8 +137,6 @@ class Unit {
   public function moveTo(x:Int, y:Int):Void {
     subX = subY = 0;
     remove();
-    gridX = x;
-    gridY = y;
-    grid.units[gridX + gridY * grid.w] = this;
+    putAt(grid, x, y);
   }
 }

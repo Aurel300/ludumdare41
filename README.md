@@ -26,7 +26,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - unit deploy
  - tbs win / loss conditions
 
 ## TODO ##

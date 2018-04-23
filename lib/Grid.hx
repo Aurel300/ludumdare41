@@ -24,6 +24,7 @@ class Grid {
   public var turn:TurnState = Idle;
   
   var renEnts:Vector<GridTile>;
+  var rv:Unit;
   
   public function new(w:Int, h:Int) {
     this.w = w;
@@ -38,31 +39,22 @@ class Grid {
       vi++;
     }
     
-    var r = new RV();
-    r.grid = this;
-    r.gridX = 0;
-    r.gridY = 0;
-    units[0] = r;
-    
-    var b = new Burger();
-    b.grid = this;
-    b.gridX = 2;
-    b.gridY = 2;
-    b.addLayer(Tomato);
-    b.addLayer(Carrot);
-    b.addLayer(Patty(1));
-    b.addLayer(Cheese);
-    b.addLayer(Cucumber);
-    b.addLayer(Lettuce);
-    b.addLayer(BunTop);
-    b.stats.hpMax = b.stats.hp = 10;
-    units[2 + 2 * 5] = b;
+    rv = new RV();
+    rv.putAt(this, 0, 0);
     
     var s = new Enemy(Ufo(3));
-    s.grid = this;
-    s.gridX = 3;
-    s.gridY = 3;
-    units[3 + 3 * 5] = s;
+    s.putAt(this, 3, 3);
+  }
+  
+  public function deploy(b:Burger):Bool {
+    switch (state) {
+      case Turn(false, _): return false;
+      case _:
+      b.addLayer(BunTop);
+      var deployAt = i2c(bfs(rv, true)[0].ati);
+      b.putAt(this, deployAt.x, deployAt.y);
+      return true;
+    }
   }
   
   inline function c2i(x:Int, y:Int):Int return x + y * w;
@@ -210,7 +202,7 @@ class Grid {
     }
   }
   
-  function bfs(sel:Unit):Array<AIOutcome> {
+  function bfs(sel:Unit, ?first:Bool = false):Array<AIOutcome> {
     var ret:Array<AIOutcome> = [];
     clearMove();
     var queue = [{fx: sel.gridX, fy: sel.gridY, x: sel.gridX, y: sel.gridY, dist: 0}];
@@ -219,7 +211,7 @@ class Grid {
       if (!cur.x.withinI(0, w - 1) || !cur.y.withinI(0, h - 1)) continue;
       var i = c2i(cur.x, cur.y);
       var cent = renEnts[i];
-      if (units[i] != null && units[i] != sel) {
+      if (units[i] != null && units[i] != sel && !first) {
         if (units[i].player != sel.player) {
           ret.push({
                score: 0
@@ -240,6 +232,9 @@ class Grid {
             ,ati: i
             ,attack: false
           });
+        if (first && i != c2i(sel.gridX, sel.gridY)) {
+          return [ret[ret.length - 1]];
+        }
         cent.move = true;
         cent.moveFX = cur.fx - cur.x;
         cent.moveFY = cur.fy - cur.y;
