@@ -7,7 +7,7 @@ import lib.P3DBuild.P3DSkeleton;
 class Unit {
   static var MOVE_TIME:Int = 30;
   static var ATTACK_TIME:Int = 30;
-  static var ANGLES:Array<Array<Int>> = [[0, 9, 0], [18, 0, 0], [0, 27, 0]];
+  static var ANGLES:Array<Array<Int>> = [[0, 27, 0], [18, 0, 0], [0, 9, 0]];
   
   public static var as:Map<String, Bitmap>;
   public static var ss:Map<String, Array<P3DSkeleton>>;
@@ -25,8 +25,26 @@ class Unit {
         ,"cheese" => [Offset([Floor(u >> new Cut(32, 128, 32, 32), 0, 0)], -16, -16, 0, 0)]
         ,"sauce" => [Offset([Floor(u >> new Cut(64, 128, 32, 32), 0, 0)], -16, -16, 0, 0)]
         ,"pepsalt" => [Offset([Floor(u >> new Cut(96, 128, 32, 32), 0, 0)], -16, -16, 0, 0)]
-        ,"scorpion1" => [Offset([Floor(u >> new Cut(64, 8, 16, 24), 0, 1)], -8, -12, 2, 0)]
-        ,"scorpion2" => [Offset([Floor(u >> new Cut(64, 32, 16, 24), 0, 1)], -8, -12, 2, 0)]
+        ,"scorpion1" => [
+             Offset([Floor(u >> new Cut(64, 8, 16, 24), 0, 1)], -8, -12, 2, 0)
+            ,Offset([Floor(u >> new Cut(80, 8, 16, 24), 0, 29)], -13, -12, 14, 0)
+            ,Offset([Floor(u >> new Cut(96, 8, 16, 24), 0, 35)], -12, -12, 12, 0)
+          ]
+        ,"scorpion2" => [
+             Offset([Floor(u >> new Cut(64, 32, 16, 24), 0, 1)], -8, -12, 2, 0)
+            ,Offset([Floor(u >> new Cut(80, 32, 16, 24), 0, 29)], -13, -12, 14, 0)
+            ,Offset([Floor(u >> new Cut(96, 32, 16, 24), 0, 35)], -12, -12, 12, 0)
+          ]
+        ,"ufo1" => [
+             Offset([P3DBuild.autoBox(u, 112, 8, 12, 12, 8)], -6, -6, 12, 0)
+          ]
+        ,"ufo2" => [
+             Offset([P3DBuild.autoBox(u, 112, 32, 16, 16, 11)], -8, -8, 14, 0)
+          ]
+        ,"ufo3" => [
+              Offset([P3DBuild.autoBox(u, 112, 32, 16, 16, 11)], -8, -8, 14, 0)
+             ,Offset([P3DBuild.autoBox(u, 176, 8, 24, 24, 3)], -12, -12, 16, 0)
+          ]
       ];
   }
   

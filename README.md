@@ -26,10 +26,6 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - enemies
-   - scorpion
-   - alien ufo
-
 ## TODO ##
 
  - gameplay
@@ -37,7 +33,7 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
    - cooking
      - stats
    - tbs
-     - units
+     - traits
  - graphics
    - particle effecs
    - [.] time progression via palette shifts

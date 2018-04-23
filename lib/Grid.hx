@@ -49,9 +49,10 @@ class Grid {
     b.addLayer(Cucumber);
     b.addLayer(Lettuce);
     b.addLayer(BunTop);
+    b.stats.hpMax = b.stats.hp = 10;
     units[2 + 2 * 5] = b;
     
-    var s = new Scorpion();
+    var s = new Enemy(Ufo(3));
     s.grid = this;
     s.gridX = 3;
     s.gridY = 3;
