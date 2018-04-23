@@ -40,7 +40,7 @@ class Main extends Application {
             ,Embed.getSound("snd-cut-start", "wav/cut-start.wav")
             ,new AssetTrigger("pal-t", ["pal"], (am, _) -> { Pal.init(am.getBitmap("pal")); false; })
             ,new AssetTrigger("text-t", [font.FontNS.ASSET_ID, "pal-t"], (am, _) -> { Text.init(am); false; })
-            ,new AssetBind(["ing"], (am, _) -> { Board.init(am.getBitmap("ing")); false; })
+            ,new AssetBind(["ing", "pal-t"], (am, _) -> { Board.init(am.getBitmap("ing")); false; })
             ,new AssetBind(["unit"], (am, _) -> { Unit.init(am.getBitmap("unit")); false; })
             ,new AssetBind(["gui", "text-t"], (am, _) -> { GUI.init(am.getBitmap("gui")); false; })
             ,new AssetBind([

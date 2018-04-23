@@ -7,6 +7,21 @@ class Board {
   static var as:Map<String, Bitmap>;
   static var ingr:Map<Ingredient, Bitmap>;
   
+  public static inline function pattyState(t:Int):Int {
+    return (t < 3 * 60 ? 0 :
+      (t < 13 * 60 ? 1 :
+      (t < 23 * 60 ? 2 : 3)));
+  }
+  
+  public static inline function combinedPattyState(ten:Int, f:Int, t:Int):BurgerLayer {
+    var a = pattyState(f);
+    var b = pattyState(t);
+    return Patty(a == 3 || b == 3 ? 3
+      : (a == 0 || b == 0 ? 0
+      : (a == 1 || b == 1 ? 1
+      : 2)));
+  }
+  
   public static function init(b:Bitmap):Void {
     var f = b.fluent;
     as = [
@@ -18,10 +33,30 @@ class Board {
         ,"knife" => f >> new Cut(232, 16, 168, 48)
         ,"knife_ghost" => f >> new Cut(232, 64, 168, 48)
         ,"tenderiser" => f >> new Cut(232, 112, 168, 56)
-        ,"interiour" => f >> new Cut(0, 232, 320 * 2, 240)
+        ,"interiour" => f >> new Cut(0, 232, 320 * 3, 240)
         ,"plate" => f >> new Cut(184, 168, 104, 56)
         ,"plate_shadow" => f >> new Cut(184 + 104, 168, 104, 56)
+        ,"patty_grill0" => f >> new Cut(400, 112, 120, 56)
       ];
+    var pattyMap = [
+         0  => [0, 0,  0,  0 ]
+        ,17 => [0, 27, 27, 21]
+        ,18 => [0, 17, 17, 21]
+        ,19 => [0, 17, 17, 22]
+        ,26 => [0, 26, 7,  7 ]
+        ,27 => [0, 26, 26, 20]
+      ];
+    for (i in 1...4) {
+      as["patty_grill" + i] = f >> new Cut(400, 112, 120, 56);
+      var vec = as["patty_grill" + i].getVector();
+      for (vi in 0...vec.length) {
+        var q = Colour.quantise(vec[vi], Pal.reg);
+        if (!pattyMap.exists(q)) trace(vec[vi], q);
+        vec[vi] = Pal.reg[pattyMap[q][i]];
+      }
+      as["patty_grill" + i].setVector(vec);
+    }
+    for (i in 0...4) as["patty_grill_flip" + i] = as["patty_grill" + i].fluent >> new Flip();
     var i = 0;
     ingr = [
          Carrot => f >> new Cut(400 + i++ * 32, 8, 32, 34)
@@ -36,18 +71,21 @@ class Board {
   static var platePosX = [40, 184, 112];
   static var platePosY = [103, 103, 160];
   
+  static var pattyPosX = [34, 174, 34, 174];
+  static var pattyPosY = [50, 50, 134, 134];
+  
   public var task:BoardTask = None;
   public var obj:Bitmap = null;
   public var objX:Float = 0;
-  public var objY:Float = 240;
+  public var objY:Float = Main.H;
   public var objW:Int = 0;
   public var objTX:Float = 0;
-  public var objTY:Float = 240;
+  public var objTY:Float = Main.H;
   public var knife:Bitmap =  null;
   public var knifeX:Float = Main.W + 10;
-  public var knifeY:Float = 40;
+  public var knifeY:Float = Main.H;
   public var knifeTX:Float = Main.W + 10;
-  public var knifeTY:Float = 40;
+  public var knifeTY:Float = Main.H;
   public var knifeDip:Int = 0;
   public var bpieces = new Array<Piece>();
   public var pieces = new List<Piece>();
@@ -59,14 +97,18 @@ class Board {
   public var inventoryHover:Int = -1;
   public var slotHover:Int = -1;
   public var slotSelect:Int = -1;
+  public var pattyHover:Int = -1;
+  public var grill:Array<PattyGrill>;
   var plots:Array<Plot>;
   var slots:Array<Burger>;
   var p3d:P3D;
   var dropLayer:P3DBuild;
+  var score:Int = 0;
   
   public function new() {
     plots = [ for (i in 0...3) new Plot(106, 126) ];
     slots = [ for (i in 0...3) new Burger() ];
+    grill = [ for (i in 0...4) None ];
     
     p3d = new P3D();
     p3d.zoom = 3;
@@ -83,6 +125,7 @@ class Board {
     timer = 0;
     return (switch (task) {
         case CutCarrot(_):
+        score = 0;
         obj = as["carrot"];
         objW = as["carrot"].width;
         objTX = 40;
@@ -91,6 +134,7 @@ class Board {
             55 + i * 38 + FM.prng.nextMod(18);
           } ]);
         case CutCucumber(_):
+        score = 0;
         obj = as["cucumber"];
         objW = as["cucumber"].width;
         objTX = 40;
@@ -99,6 +143,7 @@ class Board {
             65 + i * 25 + FM.prng.nextMod(18);
           } ]);
         case Tenderise:
+        score = 0;
         obj = null;
         objTX = 60;
         objTY = 120;
@@ -133,9 +178,11 @@ class Board {
   }
   
   public function start(task:BoardTask) {
+    deinit();
     bpieces = null;
     space = (switch (task) {
         case SelectBurger(_): 0;
+        case SelectGrill(_): 2;
         case _: 1;
       });
     this.task = Starting(task, 20);
@@ -144,6 +191,13 @@ class Board {
   
   function deinit():Void {
     switch (task) {
+      case CutCarrot(_) | CutCucumber(_) | Tenderise:
+      objTX = 0;
+      objTY = Main.H + 10;
+      knifeX = Main.W + 10;
+      knifeY = Main.H + 10;
+      knifeTX = Main.W + 10;
+      knifeTY = Main.H + 10;
       case Stats(_):
       GUI.hide("stats");
       GUI.hide("trash");
@@ -162,9 +216,6 @@ class Board {
     // render logic
     switch (task) {
       case None:
-      knifeTX = Main.W + 10;
-      knifeTY = 40;
-      objTY = Main.H + 10;
       case CutCarrot(marks) | CutCucumber(marks):
       knifeTY = 40;
       if (timer == 0 || timer == 320) Sfx.play("cut-start");
@@ -247,6 +298,36 @@ class Board {
       p.vy += 0.09;
     }
     
+    // grill
+    doSelect = (switch (task) {
+        case None | SelectGrill(_): y == 0 && space == 2 && spaceX > 639;
+        case _: false;
+      });
+    pattyHover = -1;
+    var space3X = -640 + spaceX;
+    for (i in 0...4) {
+      var cury = pattyPosY[i] + y;
+      if (doSelect
+          && mx.withinI(pattyPosX[i], pattyPosX[i] + 119)
+          && my.withinI(pattyPosY[i], pattyPosY[i] + 55)) {
+        pattyHover = i;
+        cury -= 2;
+      }
+      grill[i] = (switch (grill[i]) {
+          case First(ten, t):
+          var s = pattyState(t);
+          to.blitAlpha(as["patty_grill" + s], (pattyPosX[i] - space3X).floor(), cury);
+          if (s == 2 && (t >> 4) % 2 == 1) to.blitAlpha(GUI.as["timerEx"], (pattyPosX[i] - space3X).floor(), cury);
+          First(ten, t + 1);
+          case Second(ten, f, t):
+          var s = pattyState(t);
+          to.blitAlpha(as["patty_grill_flip" + s], (pattyPosX[i] - space3X).floor(), cury);
+          if (s == 2 && (t >> 4) % 2 == 1) to.blitAlpha(GUI.as["timerEx"], (pattyPosX[i] - space3X).floor(), cury);
+          Second(ten, f, t + 1);
+          case None: None;
+        });
+    }
+    
     // logic
     switch (task) {
       case Starting(t, f):
@@ -256,8 +337,7 @@ class Board {
       }
       case CutCarrot(_): if (timer >= 640) start(SelectBurger(Drop(Carrot)));
       case CutCucumber(_): if (timer >= 640) start(SelectBurger(Drop(Cucumber)));
-      case Tenderise:
-      if (timer >= 640) start(SelectBurger(Drop(Patty(0))));
+      case Tenderise: if (timer >= 10/*640*/) start(SelectGrill(score));
       case _:
     }
     
@@ -303,6 +383,26 @@ class Board {
       inventoryHover = -1;
       return true;
     }
+    if (pattyHover != -1) {
+      switch (task) {
+        case SelectGrill(ten):
+        switch (grill[pattyHover]) {
+          case None: grill[pattyHover] = First(ten, 0);
+          deinit();
+          case _: // TODO: let player know
+        }
+        case None:
+        switch (grill[pattyHover]) {
+          case First(ten, t): grill[pattyHover] = Second(ten, t, 0);
+          case Second(ten, f, t): grill[pattyHover] = None;
+          start(SelectBurger(Drop(combinedPattyState(ten, f, t))));
+          case _:
+        }
+        case _:
+      }
+      pattyHover = -1;
+      return true;
+    }
     switch (task) {
       case CutCarrot(marks) | CutCucumber(marks):
       if (timer.withinI(320, 640)) {
@@ -335,6 +435,7 @@ class Board {
           });
       }
       case Tenderise:
+      score++;
       Sfx.play("cut");
       knifeTX = 80 + FM.prng.nextMod(100);
       knifeTY = 50 + FM.prng.nextMod(30);
@@ -355,7 +456,7 @@ class Board {
   public function keyUp(k:Key):Bool {
     return (switch [k, task] {
         case [KeyA | KeyD, None | Stats(_)]: deinit();
-        space = (space + (1).negposI(k == KeyA, k == KeyD)).clampI(0, 1); true;
+        space = (space + (1).negposI(k == KeyA, k == KeyD)).clampI(0, 2); true;
         case [Space, Stats(_)]: deinit(); true;
         case [Space, None]: false;
         case [Space, _]: true; // TODO: warn about task
@@ -374,6 +475,7 @@ enum BoardTask {
   
   Stats(b:Burger);
   SelectBurger(t:BoardTask);
+  SelectGrill(p:Int);
   Drop(i:BurgerLayer);
 }
 
@@ -388,3 +490,9 @@ typedef Piece = {
     ,vx:Float
     ,vy:Float
   };
+
+enum PattyGrill {
+  None;
+  First(ten:Int, t:Int);
+  Second(ten:Int, f:Int, t:Int);
+}

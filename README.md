@@ -17,22 +17,29 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - ?
+ - tomato minigame
+   - rotate sprite
+   - detect mouse proximity to target area
+ - recipes + stats
+   - minigame rating
+ - enemies
+   - scorpion
+   - alien ufo
 
 ## TODO ##
 
  - gameplay
-   - open world - 1h
+   - open world
      - driving
      - encounters
      - locations
      - arcs
-   - cooking - 4h
+   - cooking
      - [.] methods
      - [.] ingredients
      - timers
      - stats
-   - tbs - 2h
+   - tbs
      - units
    - overall stats, progression
  - graphics

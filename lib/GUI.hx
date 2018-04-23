@@ -16,6 +16,7 @@ class GUI {
     as = [
          "timer1" => b >> new Cut(0, 8, 32, 40)
         ,"timer2" => b >> new Cut(32, 8, 32, 40)
+        ,"timerEx" => b >> new Cut(64, 8, 32, 32)
         ,"trash" => b >> new Cut(0, 48, 48, 48)
         ,"deploy" => b >> new Cut(48 * 2, 48, 48, 48)
         ,"drop" => b >> new Cut(0, 96, 64, 64)
@@ -39,6 +40,7 @@ class GUI {
         ,"trash" => new GUI(8, Main.H, 8, Main.H - 46, [as["trash"]])
         ,"deploy" => new GUI(Main.W - 48 - 8, -48, Main.W - 48 - 8, -2, [as["deploy"]])
       ];
+    panels["drop"].ignoreClicks = true;
     Text.render(panels["trash"].bs[0], 4, 30, "Destroy!");
     Text.render(panels["deploy"].bs[0], 8, 24, "Deploy!");
     panels["trash"].moy = -2;
@@ -90,6 +92,7 @@ class GUI {
   public var mox:Int = 0;
   public var moy:Int = 0;
   public var bs:Array<Bitmap>;
+  public var ignoreClicks:Bool = false;
   
   public function new(px1:Int, py1:Int, px2:Int, py2:Int, bs:Array<Bitmap>) {
     this.px1 = px1;
@@ -104,7 +107,7 @@ class GUI {
   public dynamic function action():Void {}
   
   public function click(mx:Int, my:Int):Bool {
-    if (!state.isOn) return false;
+    if (!state.isOn || ignoreClicks) return false;
     var px = px1 + ((px2 - px1) * Timing.quadInOut.getF(state.valueF)).floor();
     var py = py1 + ((py2 - py1) * Timing.quadInOut.getF(state.valueF)).floor();
     if (mx.withinI(px, px + w - 1) && my.withinI(py, py + h - 1)) {

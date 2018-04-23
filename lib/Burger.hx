@@ -1,7 +1,7 @@
 package lib;
 
 class Burger extends Unit {
-  static var pattyMap = [
+  public static var pattyMap = [
        0 => null
       ,1 => [
            17 => 7
