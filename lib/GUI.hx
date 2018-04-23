@@ -8,6 +8,7 @@ import lib.UnitStats.UnitRank;
 class GUI {
   public static var as:Map<String, Bitmap>;
   public static var dropArrow:Array<Bitmap>;
+  public static var turnBit:Array<Bitmap>;
   public static var banners:Map<UnitRank, Bitmap>;
   
   public static var panels:Map<String, GUI>;
@@ -22,6 +23,8 @@ class GUI {
         ,"drop" => b >> new Cut(0, 96, 64, 64)
         ,"dropArrow" => b >> new Cut(64, 96, 64, 64)
         ,"stats" => b >> new Cut(0, 160, 120, 80)
+        ,"turn" => b >> new Cut(128, 96, 120, 120)
+        ,"turnBit" => b >> new Cut(128, 96 + 120, 120, 120)
       ];
     banners = [
          RankS => Text.banner(Platform.createBitmap(40, 32, 0), "S")
@@ -34,11 +37,16 @@ class GUI {
       as["dropArrow"].fluent
         >> new Rotate((i / Trig.densityAngle) * Math.PI * 2)
         >> new Grow(-32, -32, -32, -32) ];
+    turnBit = [ for (i in 0...Trig.densityAngle)
+      as["turnBit"].fluent
+        >> new Rotate((-i / Trig.densityAngle) * Math.PI * 2)
+        >> new Grow(-60, -60, -60, -60) ];
     panels = [
          "drop" => new GUI(-64, 144, 8, 144, [as["drop"], dropArrow[0]])
         ,"stats" => new GUI(Main.W, Main.H - 88, Main.W - 128, Main.H - 88, [as["stats"], Platform.createBitmap(120, 80, 0)])
         ,"trash" => new GUI(8, Main.H, 8, Main.H - 46, [as["trash"]])
         ,"deploy" => new GUI(Main.W - 48 - 8, -48, Main.W - 48 - 8, -2, [as["deploy"]])
+        ,"timer" => new GUI(-32, 8, 8, 8, [as["timer1"]])
       ];
     panels["drop"].ignoreClicks = true;
     Text.render(panels["trash"].bs[0], 4, 30, "Destroy!");

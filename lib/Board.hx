@@ -7,6 +7,21 @@ class Board {
   static var as:Map<String, Bitmap>;
   static var ingr:Map<Ingredient, Bitmap>;
   
+  static inline var TASK_LENGTH = 640;
+  
+  static var timerFrames:Vector<Int> = {
+      var ret = new Vector<Int>(TASK_LENGTH);
+      var cf = 1;
+      for (i in 0...TASK_LENGTH) {
+        ret[i] = cf;
+        if (i == 80 || i == 160 || i == 240 || i == 320
+            || i == 360 || i == 400 || i == 440 || i == 480
+            || i == 500 || i == 520 || i == 540 || i == 560 || i == 580 || i == 600 || i == 620 || i == 640)
+          cf = 3 - cf;
+      }
+      ret;
+    };
+  
   public static inline function pattyState(t:Int):Int {
     return (t < 3 * 60 ? 0 :
       (t < 13 * 60 ? 1 :
@@ -125,24 +140,38 @@ class Board {
     timer = 0;
     return (switch (task) {
         case CutCarrot(_):
+        GUI.show("timer");
         score = 0;
         obj = as["carrot"];
-        objW = as["carrot"].width;
+        objW = obj.width;
         objTX = 40;
         objTY = 80;
         CutCarrot([ for (i in 1...6) {
             55 + i * 38 + FM.prng.nextMod(18);
           } ]);
         case CutCucumber(_):
+        GUI.show("timer");
         score = 0;
         obj = as["cucumber"];
-        objW = as["cucumber"].width;
+        objW = obj.width;
         objTX = 40;
         objTY = 80;
         CutCucumber([ for (i in 1...8) {
             65 + i * 25 + FM.prng.nextMod(18);
           } ]);
+        case CutTomato:
+        GUI.show("timer");
+        score = 0;
+        obj = as["tomato"];
+        objW = obj.width;
+        objTX = 100 + 19 - 1;
+        objTY = 60 + 21 - 1;
+        knifeTX = 100;
+        knifeTY = 60;
+        knife = GUI.as["turn"];
+        CutTomato;
         case Tenderise:
+        GUI.show("timer");
         score = 0;
         obj = null;
         objTX = 60;
@@ -191,7 +220,8 @@ class Board {
   
   function deinit():Void {
     switch (task) {
-      case CutCarrot(_) | CutCucumber(_) | Tenderise:
+      case CutCarrot(_) | CutCucumber(_) | CutTomato | Tenderise:
+      GUI.hide("timer");
       objTX = 0;
       objTY = Main.H + 10;
       knifeX = Main.W + 10;
@@ -230,6 +260,14 @@ class Board {
         knife = as["knife"];
         knifeTX = Main.W - (timer - 320);
       }
+      case CutTomato:
+      var tgtX = (Main.W2 + Trig.cosAngle[score % Trig.densityAngle] * 50).floor();
+      var tgtY = (Main.H2 - Trig.sinAngle[score % Trig.densityAngle] * 50).floor();
+      if (mx.withinI(tgtX - 5, tgtX + 5) && my.withinI(tgtY - 5, tgtY + 5)) {
+        objX += FM.prng.nextFloat(4) - 2;
+        objY += FM.prng.nextFloat(4) - 2;
+        score++;
+      }
       case Tenderise:
       knifeTY = 50;
       case Drop(_):
@@ -238,6 +276,7 @@ class Board {
       GUI.panels["drop"].bs[1] = GUI.dropArrow[timer];
       case _:
     }
+    GUI.panels["timer"].bs[0] = GUI.as["timer" + timerFrames[timer % TASK_LENGTH]];
     
     // render
     to.blitAlpha(as["interiour"], -spaceX.floor(), y);
@@ -289,6 +328,9 @@ class Board {
       to.blitAlphaRect(p.b, (objX + p.x - space2X).floor(), (objY + p.y).floor() + y, p.bx, p.by, p.bw, p.bh);
     }
     if (knife != null) to.blitAlpha(knife, (knifeX - space2X).floor(), knifeY.floor() + y);
+    if (task == CutTomato) {
+      to.blitAlpha(GUI.turnBit[score % Trig.densityAngle], (knifeX - space2X).floor(), knifeY.floor() + y);
+    }
     if (obj != null) to.blitAlphaRect(obj, (objX - space2X).floor(), objY.floor() + y, 0, 0, objW, obj.height);
     for (p in pieces) {
       if (p.y > Main.H) pieces.remove(p);
@@ -335,9 +377,10 @@ class Board {
         task = initTask(t);
         timer = 0;
       }
-      case CutCarrot(_): if (timer >= 640) start(SelectBurger(Drop(Carrot)));
-      case CutCucumber(_): if (timer >= 640) start(SelectBurger(Drop(Cucumber)));
-      case Tenderise: if (timer >= 10/*640*/) start(SelectGrill(score));
+      case CutCarrot(_): if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Carrot)));
+      case CutCucumber(_): if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Cucumber)));
+      case CutTomato: if (timer >= TASK_LENGTH) start(SelectBurger(Drop(Tomato)));
+      case Tenderise: if (timer >= 10/*TASK_LENGTH*/) start(SelectGrill(score));
       case _:
     }
     
@@ -375,7 +418,7 @@ class Board {
       start(switch (inventory[inventoryHover]) {
           case Carrot: CutCarrot(null);
           case Cucumber: CutCucumber(null);
-          case Tomato: CutCarrot(null);
+          case Tomato: CutTomato;
           case Patty: Tenderise;
           case Lettuce: SelectBurger(Drop(Lettuce));
           case Cheese: SelectBurger(Drop(Cheese));
@@ -469,6 +512,7 @@ enum BoardTask {
   None;
   CutCarrot(marks:Array<Int>);
   CutCucumber(marks:Array<Int>);
+  CutTomato;
   Tenderise;
   
   Starting(t:BoardTask, f:Int);
