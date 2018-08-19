@@ -63,14 +63,15 @@ class Main extends Application {
             ,new AssetBind(["ing", "pal-t"], (am, _) -> { Board.init(am.getBitmap("ing")); false; })
             ,new AssetBind(["unit", "rv"], (am, _) -> { Unit.init(am.getBitmap("unit"), am.getBitmap("rv")); false; })
             ,new AssetBind(["gui", "text-t"], (am, _) -> { GUI.init(am.getBitmap("gui")); false; })
-            ,new AssetBind(["world", "interp"], (am, _) -> { World.init(am.getBitmap("world"), am.getBitmap("interp")); false; })
+            ,new AssetBind(["world", "interp", "unit"], (am, _) -> { World.init(am.getBitmap("world"), am.getBitmap("interp"), am.getBitmap("unit")); false; })
             ,new AssetBind(["snd-hit1"], (am, _) -> { Sfx.init(am); false; })
           ])
         ,Keyboard
         ,Mouse
       ]);
     Trig.init();
-    preloader = new TNPreloader(this, "game", true);
+    preloader = new TNPreloader(this, "title", true);
+    addState(new STitle(this));
     addState(g = new SGame(this));
     mainLoop();
   }

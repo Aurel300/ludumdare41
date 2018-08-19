@@ -131,7 +131,7 @@ class Board {
   var plots:Array<Plot>;
   var p3d:P3D;
   
-  var task:BoardTask;
+  public var task:BoardTask;
   var obj:Bitmap;
   var objX:Float;
   var objY:Float;
@@ -357,7 +357,7 @@ class Board {
   
   public function render(to:Bitmap, y:Int, mx:Int, my:Int):Void {
     var doSizzle = false;
-    for (i in 0...4) if (grill[i] != None) doSizzle = true;
+    if (Main.g.mode == TBS) for (i in 0...4) if (grill[i] != None) doSizzle = true;
     sizzle.tick(doSizzle, (1 - y / Main.H) * .7 + .3, -(640 - spaceX) / 640);
     
     // render logic
@@ -665,7 +665,7 @@ class Board {
       }
       case Stats(_): deinit();
       case Drop(_): deinit();
-      case Stats(_) | None:
+      case None:
       if (mx < 10 && space > 0) {
         space--;
         deinit();

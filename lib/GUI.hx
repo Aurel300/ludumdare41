@@ -117,6 +117,8 @@ class GUI {
             t;
           }])
         ,"hud_battle" => new GUI(136, Main.H, 136, Main.H - 24, [as["hud"], Platform.createBitmap(112, 24, 0)])
+        ,"plot" => new GUI(Main.W, 40, Main.W - 200, 40, [as["box"].fluent >> new Box(new Point2DI(3, 3), new Point2DI(13, 12), 192, 192), null])
+        ,"levelStart" => new GUI(Main.W, 100, Main.W - 70, 100, [as["box"].fluent >> new Box(new Point2DI(3, 3), new Point2DI(13, 12), 72, 32), null])
       ];
     panels["drop"].ignoreClicks = true;
     Text.render(panels["trash"].bs[0], 4, 30, "Destroy!");
@@ -140,6 +142,7 @@ class GUI {
     panels["trans_loss"].ignoreClicks = true;
     panels["trans_loss2"].state = new Bitween(130);
     panels["trans_loss2"].ignoreClicks = true;
+    panels["levelStart"].mox = -2;
     var hud = panels["hud_battle"];
     hud.tick = function () {
       if (Main.g.mode != TBS) return;
@@ -154,8 +157,26 @@ class GUI {
   }
   
   public static function clickAll(mx:Int, my:Int):Bool {
-    for (p in panels) {
-      if (p.click(mx, my)) return true;
+    for (pk in [
+         "plot"
+        ,"trans_loss2"
+        ,"trans_loss"
+        ,"trans_win2"
+        ,"trans_win"
+        ,"trans_fight2"
+        ,"trans_fight"
+        ,"levelStart"
+        ,"timer"
+        ,"hud_battle"
+        ,"deploy"
+        ,"trash"
+        ,"dropInfo"
+        ,"drop"
+        ,"stats"
+      ]) {
+      if (panels[pk].click(mx, my)) {
+        return true;
+      }
     }
     return false;
   }
@@ -164,7 +185,24 @@ class GUI {
     var omx = mx;
     var omy = my;
     var mo = false;
-    for (p in panels) {
+    for (pk in [
+         "stats"
+        ,"drop"
+        ,"dropInfo"
+        ,"trash"
+        ,"deploy"
+        ,"hud_battle"
+        ,"timer"
+        ,"levelStart"
+        ,"trans_fight"
+        ,"trans_fight2"
+        ,"trans_win"
+        ,"trans_win2"
+        ,"trans_loss"
+        ,"trans_loss2"
+        ,"plot"
+      ]) {
+      var p = panels[pk];
       if (p.render(to, mx, my)) {
         mo = true;
         mx = my = -1;
@@ -210,6 +248,52 @@ class GUI {
     };
   }
   
+  public static function showLevelStart(id:String, x:Int, y:Int):Void {
+    panels["levelStart"].action = () -> {
+      Main.g.enterBattle(id, x, y);
+      GUI.hide("levelStart");
+    }
+    panels["levelStart"].bs[1] = Text.justify('Start level: ${Grid.levels[id].name}', 72);
+    GUI.show("levelStart");
+  }
+  
+  public static function showPlot(orig:Array<lib.Level.LevelPlot>):Void {
+    var plot = orig.copy();
+    var cur = null;
+    var panel = panels["plot"];
+    var showing = true;
+    function process():Void {
+      if (plot.length == 0) {
+        panel.takeAll = false;
+        hide("plot");
+        return;
+      }
+      showing = true;
+      panel.px2 = Main.W - 200;
+      cur = plot.shift();
+      panel.takeAll = false;
+      switch (cur) {
+        case Text(t):
+        panel.bs[1] = Text.justify(t, 190).fluent >> new Grow(3, 0, 3, 0);
+        panel.action = process;
+        panel.tick = () -> {};
+        panel.takeAll = true;
+        case TextUntil(t, f):
+        panel.bs[1] = Text.justify(t, 190).fluent >> new Grow(3, 0, 3, 0);
+        panel.action = function () {
+          showing = !showing;
+          panel.px2 = showing ? Main.W - 200 : Main.W - 20;
+        };
+        panel.tick = function () {
+          if (f()) process();
+        };
+      }
+      panel.bs[0] = as["box"].fluent >> new Box(new Point2DI(3, 3), new Point2DI(13, 12), 192, panel.bs[1].height + 6);
+    }
+    process();
+    show("plot");
+  }
+  
   public static function show(id:String):Void panels[id].state.setTo(true);
   public static function hide(id:String):Void panels[id].state.setTo(false);
   
@@ -228,7 +312,7 @@ class GUI {
       b.blitAlpha(banners[s.rank], 80, 45);
     }
     var curx = 120 - 5 - 17;
-    for (t in s.traits) {
+    for (t in s.traits) if (traits.exists(t)) {
       b.blitAlpha(traits[t], curx, 3);
       curx -= 18;
     }
@@ -261,6 +345,7 @@ class GUI {
   public var bs:Array<Bitmap>;
   public var ignoreClicks:Bool = false;
   public var panelTooltip:String;
+  public var takeAll:Bool = false;
   
   public var px(get, never):Int;
   private inline function get_px():Int {
@@ -285,6 +370,10 @@ class GUI {
   public dynamic function action():Void {}
   
   public function click(mx:Int, my:Int):Bool {
+    if (takeAll) {
+      action();
+      return true;
+    }
     if (!state.isOn || ignoreClicks) return false;
     if (mx.withinI(px, px + w - 1) && my.withinI(py, py + h - 1)) {
       action();

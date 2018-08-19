@@ -18,6 +18,22 @@ class Enemy extends Unit {
         };
     }
     switch (type) {
+      case Cactus:
+      stats = makeStats({
+           name: "Cactus Cactusson"
+          ,hp: 4
+          ,ap: 0
+          ,mp: 0
+        });
+      layers = [P3DBuild.build(Anchor(""), Unit.ss["cactus"], null)];
+      case Idol:
+      stats = makeStats({
+           name: "Golden Idol"
+          ,hp: 1
+          ,ap: 0
+          ,mp: 0
+        });
+      layers = [P3DBuild.build(Anchor(""), Unit.ss["idol"], null)];
       case Scorpion(t):
       stats = makeStats(t == 1 ? {
            name: "Scorpion"
@@ -30,11 +46,7 @@ class Enemy extends Unit {
           ,ap: 2
           ,mp: 2
         });
-      layers = [P3DBuild.build(
-           Anchor("")
-          ,Unit.ss["scorpion" + t]
-          ,null
-        )];
+      layers = [P3DBuild.build(Anchor(""), Unit.ss["scorpion" + t], null)];
       case Ufo(t):
       stats = makeStats(switch (t) {
           case 1: {
@@ -49,18 +61,29 @@ class Enemy extends Unit {
             ,ap: 4
             ,mp: 3
           };
-          case _: {
+          case 3: {
              name: "UFO saucer"
             ,hp: 7
             ,ap: 4
             ,mp: 3
           };
+          case _: {
+             name: "UFO DESTROYER"
+            ,hp: 99
+            ,ap: 99
+            ,mp: 1
+          };
         });
-      layers = [P3DBuild.build(
-           Anchor("")
-          ,Unit.ss["ufo" + t]
-          ,null
-        )];
+      if (t < 4) stats.traits.push(Flying);
+      layers = [P3DBuild.build(Anchor(""), Unit.ss["ufo" + t], null)];
+      case UfoSpawner:
+      stats = makeStats({
+           name: "UFO spawner"
+          ,hp: 8
+          ,ap: 0
+          ,mp: 0
+        });
+      layers = [P3DBuild.build(Anchor(""), Unit.ss["ufoSpawner"], null)];
     }
     layerAngles = [ for (l in layers) l.angle ];
   }
@@ -69,6 +92,8 @@ class Enemy extends Unit {
   
   override public function update():Void {
     switch (type) {
+      case Ufo(4):
+      layers[0].tilt = [0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 1][timer % 11];
       case Ufo(_):
       layers[0].z = [0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 1][timer % 11];
       case _:
@@ -79,6 +104,9 @@ class Enemy extends Unit {
 }
 
 enum EnemyType {
+  Cactus;
+  Idol;
   Scorpion(t:Int);
   Ufo(t:Int);
+  UfoSpawner;
 }

@@ -26,35 +26,11 @@ Combat is a turn-based (soft time limit) strategy on an isometric grid against e
 
 ## Current focus ##
 
- - tbs win / loss conditions
-   - at the beginning of each turn check unit counts
+ - interesting combat scenarios
 
 ## TODO ##
 
- - gameplay
-   - open world
-   - tbs
- - graphics
-   - particle effecs
-   - [.] time progression via palette shifts
-   - gui
- - audio
-   - sfx
-   - music
-
 ## Bucket ##
-
-in order of importance
-
- - GPLY show timer warning when in TBS mode
- - GPLY tutorial / instruction text in bottom left
- - GPLY tooltip in bottom right
- - GPLY / VIS particles for TBS traits / status effects
- - GPLY shift baseline according to skill
- - VIS death animation
- - PERF cull back faces
- - VIS show path in TBS
- - VIS shadows
 
 ## Music list ##
 

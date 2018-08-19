@@ -1,7 +1,7 @@
 package lib;
 
 class Grid {
-  public static inline var TURN_TIME:Int = 2 * 60;
+  public static inline var TURN_TIME:Int = 12 * 60;
   
   public static inline var TILE_DIM:Int = 32;
   public static inline var TILE_HALF:Int = 16;
@@ -12,10 +12,157 @@ class Grid {
   public static var tileDataMove:Vector<Int> = Vector.fromArrayCopy([11]);
   public static var tileDataAttack:Vector<Int> = Vector.fromArrayCopy([8]);
   
+  public static var levels:Map<String, Level> = [
+      "cactus" => {
+           name: "The Cactus"
+          ,data: "
+.S....
+......
+....C.
+......
+......"
+          ,map: [
+               "S" => Start
+              ,"C" => Enemy(Cactus)
+            ]
+          ,plot: [
+               Text("Oh no, it is a duel! Burgers vs. Cactus!")
+              ,Text("No worries, you can defeat this cactus easily! It won't move or attack you, unlike more tricky foes.")
+              ,Text("In Advance Cookwares you create burgers and deploy them as your army!")
+              ,TextUntil("First, let's enter the RV - click on the bar at the bottom of the screen or press space bar.", () -> Main.g.boardY() < 1)
+              ,Text("This is where you assemble your burgers and gather ingredients.")
+              ,Text("Let's make a simple cheeseburger - bun, patty, cheese, bun.")
+              ,Text("The bottom bun is always on the plate.")
+              ,TextUntil("Click on the patty in the ingredient box to prepare it!", () -> Main.g.board.task == Tenderise)
+              ,TextUntil("Now you need to tenderise it - click as fast as you can!", () -> Main.g.board.task != Tenderise)
+              ,Text("Next the patty is grilled. Both sides should reach a crispy brown before serving.")
+              ,TextUntil("Pick a spot on the grill and click the patty when you see the flashing symbol.", () -> switch (Main.g.board.task) { case SelectBurger(_): true; case _: false; })
+              ,TextUntil("Great! Now choose a spot for the patty.", () -> switch (Main.g.board.task) { case SelectBurger(_): false; case _: true; })
+              ,Text("Your burger is scored based on how well you prepare the ingredients, but also on how well you place them.")
+              ,TextUntil("Click / press the spacebar when the blue arrow is pointing to a green spot (when it is horizontal or vertical).", () -> switch (Main.g.board.task) { case Drop(_): false; case _: true; })
+              ,TextUntil("Now place a slice of cheese on the same burger!", () -> switch (Main.g.board.task) { case Drop(Cheese): true; case _: false; })
+              ,TextUntil("Remember to time it well!", () -> switch (Main.g.board.task) { case None: true; case _: false; })
+              ,TextUntil("Great! Now you can deploy your burger into battle. Select it and then click the deploy button.", () -> Main.g.boardY() > 1)
+              ,Text("You now have a burger ready to fight!")
+              ,Text("Different recipes and ingredients result in burgers with different stats and traits. Try various combos!")
+              ,Text("You can control your units by clicking them and telling them where to move or what to attack.")
+              ,Text("To finish this tutorial, use your burger to defeat that cactus!")
+              ,Text("Oh, and WASD to move the camera, Q and E to orbit again. F to zoom in, R to zoom out.")
+            ]
+        }
+      ,"3scorp" => {
+           name: "3 Scorpions"
+          ,data: "
+..........
+......x...
+.S......X.
+......x...
+.........."
+          ,map: [
+               "S" => Start
+              ,"x" => Enemy(Scorpion(1))
+              ,"X" => Enemy(Scorpion(2))
+            ]
+        }
+      ,"umlaut" => {
+             name: "Umlaut"
+            ,data: "
+...-...
+.S.-.U.
+...-...
+..---..
+...-...
+.......
+......."
+          ,map: [
+               "S" => Start
+              ,"U" => Enemy(UfoSpawner)
+              ,"-" => Obstacle
+            ]
+          ,plot: [
+               Text("Also, a UFO crashed.")
+              ,Text("Be careful! The saucers can fly over obstacles.")
+            ]
+        }
+      ,"quick" => {
+           name: "Quick!"
+          ,data: "
+...CCCCCG
+.S.------
+........U"
+          ,map: [
+               "S" => Start
+              ,"-" => Obstacle
+              ,"G" => Enemy(Idol)
+              ,"C" => Enemy(Cactus)
+              ,"U" => Enemy(Ufo(4))
+            ]
+          ,plot: [
+              Text("Be quicker than the UFO destroyer! You win the level if you capture the golden idol.")
+            ]
+        }
+      ,"6scorp" => {
+           name: "Ambush"
+          ,data: "
+..x...........x..
+..X.....S.....X..
+..x...........x.."
+          ,map: [
+               "S" => Start
+              ,"-" => Obstacle
+              ,"x" => Enemy(Scorpion(1))
+              ,"X" => Enemy(Scorpion(2))
+            ]
+        }
+      ,"islands" => {
+           name: "Islands"
+          ,data: "
+------------------
+------------------
+--....-....-....--
+--.U..-.......U.--
+--....-....-....--
+--....-....-....--
+---.-----.---.----
+--....-....-....--
+--....-....-....--
+--.......U.-..S.--
+--....-....-....--
+------------------
+------------------"
+          ,map: [
+               "S" => Start
+              ,"-" => Obstacle
+              ,"U" => Enemy(UfoSpawner)
+            ]
+        }
+      ,"toxic" => {
+           name: "Toxic only"
+          ,data: "
+.....
+.--..
+CU-.S
+.--..
+....."
+          ,map: [
+               "S" => Start
+              ,"-" => Obstacle
+              ,"C" => Enemy(Cactus)
+              ,"U" => Enemy(Ufo(4))
+            ]
+          ,plot: [
+               Text("There are rumours of a burger recipe that combines the juiciness of saucy, meaty, cheesy, tomato, letuce-y goodness ...")
+              ,Text("With the awfulness of coal products.")
+              ,Text("Such burgers are toxic and can damage things from afar!")
+            ]
+        }
+    ];
+  
   public var x:Int = 0;
   public var y:Int = 0;
   public var w:Int;
   public var h:Int;
+  public var turnCounter:Int;
   
   public var units:Vector<Unit>;
   public var renTiles:Vector<P3DPart>;
@@ -36,11 +183,27 @@ class Grid {
   
   public function new() {}
   
+  public function resetLevel(x:Int, y:Int, level:Level):Void {
+    var data:Array<Array<lib.Level.LevelElement>>
+      = level.data.split("\n").slice(1)
+        .map(l -> l.split("").map(c -> level.map.exists(c) ? level.map[c] : lib.Level.LevelElement.None));
+    reset(x, y, data[0].length, data.length);
+    for (y in 0...h) for (x in 0...w) {
+      switch (data[y][x]) {
+        case Start: (rv = new RV()).putAt(this, x, y);
+        case Obstacle: renEnts[c2i(x, y)].walkable = renTiles[c2i(x, y)].display = false;
+        case Enemy(type): (new Enemy(type)).putAt(this, x, y);
+        case _:
+      }
+    }
+  }
+  
   public function reset(x:Int, y:Int, w:Int, h:Int):Void {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    turnCounter = 0;
     units = new Vector(w * h);
     renEnts = new Vector(w * h);
     renTiles = new Vector(w * h);
@@ -50,12 +213,6 @@ class Grid {
       renTiles[vi] = renEnts[vi].part;
       vi++;
     }
-    
-    rv = new RV();
-    rv.putAt(this, 0, 0);
-    
-    var s = new Enemy(Ufo(3));
-    s.putAt(this, 3, 3);
   }
   
   public function deploy(b:Burger):Bool {
@@ -78,10 +235,12 @@ class Grid {
   }
   
   function clearUnits(player:Bool):Void {
+    turnCounter++;
     var healer = [];
     var smell = [];
     //var poison = [];
     var toxic = [];
+    var num = 0;
     for (vi in 0...units.length) {
       if (units[vi] == null) continue;
       for (t in units[vi].stats.traits) switch (t) {
@@ -92,9 +251,13 @@ class Grid {
         case _:
       }
       if (units[vi].player != player) continue;
+      num++;
       units[vi].aiMoved = false;
       units[vi].stats.mp = units[vi].stats.mpMax;
       units[vi].stats.ap = units[vi].stats.apMax;
+    }
+    if (num == 0) {
+      Main.g.enterRoam(!player);
     }
     for (vi in 0...units.length) {
       if (units[vi] == null) continue;
@@ -120,38 +283,46 @@ class Grid {
     var space = bfs(u);
     if (enemies.length == 0 || space.length == 0) return space[0];
     var hpf = u.stats.hp / u.stats.hpMax;
+    var aggressive = u.stats.ap > 10;
     for (s in space) {
-      var damage = 0.0;
-      if (s.attack) {
-        var tgt = units[s.ati];
-        damage += u.stats.ap;
-        if (u.stats.ap < tgt.stats.hp) {
-          damage -= tgt.stats.ap * .3;
-        }
-      }
+      var sc = i2c(s.ati);
       var closest = null;
       var closestDist = 0;
       for (e in enemies) {
-        var dist = (e.gridX - u.gridX).absI() + (e.gridY - u.gridY).absI();
+        var dist = (e.gridX - sc.x).absI() + (e.gridY - sc.y).absI();
         if (closest == null || dist < closestDist) {
           closest = e;
           closestDist = dist;
         }
       }
-      var proxMod = 1 / (hpf * u.stats.ap * closestDist);
-      closest = null;
-      closestDist = 0;
-      for (e in allies) {
-        var dist = (e.gridX - u.gridX).absI() + (e.gridY - u.gridY).absI();
-        if (closest == null || dist < closestDist) {
-          closest = e;
-          closestDist = dist;
+      if (aggressive) {
+        if (s.attack) return s;
+        s.score = -closestDist;
+      } else {
+        var damage = 0.0;
+        if (s.attack) {
+          var tgt = units[s.ati];
+          damage += u.stats.ap;
+          if (u.stats.ap < tgt.stats.hp) {
+            damage -= tgt.stats.ap * .3;
+          }
         }
+        var proxMod = 1 / (hpf * u.stats.ap * closestDist);
+        closest = null;
+        closestDist = 0;
+        for (e in allies) {
+          var dist = (e.gridX - sc.x).absI() + (e.gridY - sc.y).absI();
+          if (closest == null || dist < closestDist) {
+            closest = e;
+            closestDist = dist;
+          }
+        }
+        var distMod = (1 - hpf) * closestDist;
+        s.score = damage + proxMod + distMod;
       }
-      var distMod = (1 - hpf) * closestDist;
-      s.score = damage + proxMod + distMod;
     }
     space.sort((a, b) -> a.score < b.score ? 1 : -1);
+    if (aggressive) return space[0];
     var i = 0;
     while (i < space.length - 1 && FM.prng.nextMod(3) == 0) i++;
     return space[i];
@@ -217,6 +388,7 @@ class Grid {
   function bfs(sel:Unit, ?first:Bool = false):Array<AIOutcome> {
     var ret:Array<AIOutcome> = [];
     clearMove();
+    var flying = sel.stats.traits.indexOf(Flying) != -1;
     var queue = [{fx: sel.gridX, fy: sel.gridY, x: sel.gridX, y: sel.gridY, dist: 0}];
     while (queue.length > 0) {
       var cur = queue.shift();
@@ -237,7 +409,7 @@ class Grid {
         }
         continue;
       }
-      // if (!cent.walkable) continue;
+      if (!cent.walkable && !flying) continue;
       if (cent.moveDist == -1 || cur.dist < cent.moveDist) {
         ret.push({
              score: 0
@@ -252,7 +424,7 @@ class Grid {
         cent.moveFY = cur.fy - cur.y;
         cent.moveDist = cur.dist;
       }
-      if (cur.dist < sel.stats.mp) {
+      if (cur.dist < sel.stats.mp || first) {
         for (off in [
              {x: -1, y: 0}
             ,{x: 1, y: 0}
@@ -267,7 +439,18 @@ class Grid {
   }
   
   function act(sel:Unit, ati:Int):Void {
-    if (ati == c2i(sel.gridX, sel.gridY)) return;
+    if (ati == c2i(sel.gridX, sel.gridY)) {
+      switch (sel.stats.name) {
+        case "UFO spawner":
+        if (turnCounter % 3 == 0) {
+          var e = new Enemy(Ufo(1));
+          var deployAt = i2c(bfs(sel, true)[0].ati);
+          e.putAt(this, deployAt.x, deployAt.y);
+        }
+        case _:
+      }
+      return;
+    }
     var curi = ati;
     var cur = renEnts[ati];
     var canim:UnitAnimation = None;
@@ -300,8 +483,6 @@ class Grid {
   }
   
   public function gridClick(x:Int, y:Int):Void {
-    Main.g.enterRoam(true);
-    return;
     var ati = c2i(x, y);
     switch (state) {
       case Turn(true, _):
@@ -350,6 +531,7 @@ class GridTile implements Entity {
   public var moveFX:Int;
   public var moveFY:Int;
   public var moveDist:Int;
+  public var walkable:Bool = true;
   
   public function new(grid:Grid, x:Int, y:Int) {
     this.grid = grid;

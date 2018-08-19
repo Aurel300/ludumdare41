@@ -45,10 +45,23 @@ class Unit {
               Offset([P3DBuild.autoBox(u, 112, 32, 16, 16, 11)], -8, -8, 14, 0)
              ,Offset([P3DBuild.autoBox(u, 176, 8, 24, 24, 3)], -12, -12, 16, 0)
           ]
+        ,"ufo4" => [
+              Offset([P3DBuild.autoBox(u, 112, 32, 16, 16, 11)], -8, -8, 6, 0)
+             ,Offset([P3DBuild.autoBox(u, 176, 40, 24, 24, 3)], -12, -12, 6, 0)
+          ]
+        ,"ufoSpawner" => [
+             Offset([Floor(u >> new Cut(176, 72, 32, 32), 0, 0)], -16, -16, 2, 0)
+          ]
         ,"rv" => [
              Offset([P3DBuild.autoBox(rv, 0, 8, 64, 32, 48)], -32, -16, 0, 0)
             ,Offset([Wall(rv >> new Cut(64, 56, 32, 46), 9)], 24, -16, 0, 0)
             ,Offset([Floor(rv >> new Cut(96, 56, 13, 32), 0, 32)], 22, -16, 22, 0)
+          ]
+        ,"cactus" => [
+             Offset([P3DBuild.autoBox(u, 128, 64, 8, 8, 24)], -4, -4, 0, 0)
+          ]
+        ,"idol" => [
+             Offset([P3DBuild.autoBox(u, 128, 96, 8, 8, 24)], -4, -4, 0, 0)
           ]
       ];
   }
@@ -132,6 +145,7 @@ class Unit {
     if (poison) stats.poison = 3;
     if (stats.hp <= 0) {
       remove();
+      if (stats.name == "Golden Idol") Main.g.enterRoam(true);
     }
   }
   

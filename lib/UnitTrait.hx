@@ -5,4 +5,5 @@ enum UnitTrait {
   Smell;
   Poison;
   Toxic;
+  Flying;
 }

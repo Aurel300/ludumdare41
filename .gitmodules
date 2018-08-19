@@ -1,0 +1,3 @@
+[submodule "plustd"]
+	path = plustd
+	url = git@github.com:Aurel300/plustd.git

@@ -14,7 +14,10 @@ using sk.thenet.FM;
 class SGame extends JamState {
   public var mode:GMode = Roam;
   
-  var p3d:P3D;
+  public static var musicOn:Bool = true;
+  public static var soundOn:Bool = true;
+  
+  public var p3d:P3D;
   var plot:Plot;
   
   public var world:World;
@@ -30,6 +33,7 @@ class SGame extends JamState {
   var musicRoam:Crossfade;
   var musicBattle:Crossfade;
   var engine:Crossfade;
+  var levelId:String;
   
   public function new(app) super("game", app);
   
@@ -37,6 +41,13 @@ class SGame extends JamState {
     musicRoam = new Crossfade("music-roam");
     musicBattle = new Crossfade("music-battle");
     engine = new Crossfade("engine");
+    
+    GUI.showPlot([
+         Text("Welcome to the overworld!")
+        ,Text("Drive around using the mouse.")
+        ,Text("Q and E orbit the camera.")
+        ,Text("Approach a flag and press the button that appears to play a level.")
+      ]);
     
     p3d = new P3D();
     plot = new Plot(Main.W, Main.H);
@@ -57,6 +68,7 @@ class SGame extends JamState {
   }
   
   public function enterRoam(win:Bool):Void {
+    if (win) Grid.levels[levelId].beaten = true;
     GUI.hide("hud_battle");
     GUI.showTransition(win ? "win" : "loss");
     mode = Roam;
@@ -66,12 +78,17 @@ class SGame extends JamState {
     rv.angle = grid.rv.layers[0].angle;
   }
   
-  public function enterBattle():Void {
+  public function enterBattle(id:String, x:Int, y:Int):Void {
+    levelId = id;
+    var level = Grid.levels[id];
+    if (level.plot != null) {
+      GUI.showPlot(level.plot);
+    }
+    grid.resetLevel(x, y, level);
     GUI.show("hud_battle");
     Sfx.play("tune-battle");
     GUI.showTransition("fight");
     mode = TBS;
-    grid.reset(rv.x, rv.y, 5, 5);
     board.reset();
     boardBT.setTo(false, true);
   }
@@ -163,7 +180,9 @@ class SGame extends JamState {
     
     p3d.camX.target(p3d.camTX, 13);
     p3d.camY.target(p3d.camTY, 13);
-    p3d.zoom.target(zoomTarget + (2.0).negposF(ak(KeyR), ak(KeyF)), 19);
+    
+    if (mode == TBS && ak(KeyR) != ak(KeyF)) zoomTarget += ak(KeyR) ? -0.3 : 1.2;
+    p3d.zoom.target(zoomTarget, 19);
   }
   
   override public function mouseMove(mx, my) {
@@ -171,7 +190,7 @@ class SGame extends JamState {
   }
   
   override public function mouseClick(mx, my) {
-    if (!boardBT.isOn && !boardBT.isOff) return;
+    if (mode == TBS && !boardBT.isOn && !boardBT.isOff) return;
        GUI.clickAll(mx, my)
     || (boardBT.isOn ? board.click(mx, my) : false)
     || plot.click(mx, my);
@@ -186,8 +205,13 @@ class SGame extends JamState {
   }
   
   override public function keyUp(k:Key) {
+    switch (k) {
+      case KeyM: musicOn = !musicOn;
+      case KeyK: soundOn = !soundOn;
+      case _:
+    }
     switch (mode) {
-      case Roam: enterBattle();
+      case Roam:
       case TBS:
       if (boardBT.isOn && board.keyUp(k)) return;
       switch (k) {
